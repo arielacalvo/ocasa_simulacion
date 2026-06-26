@@ -1,0 +1,372 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>SLA Dashboard — Correo</title>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=IBM+Plex+Sans:wght@300;400;600;700&display=swap');
+    :root{--bg:#0D0F14;--surface:#161A22;--border:#252A35;--accent:#00D4A0;--accent2:#FF6B35;--accent3:#4A90D9;--text:#E8EAF0;--muted:#6B7280;--ok:#00D4A0;--warn:#F59E0B;--fail:#EF4444;}
+    *{box-sizing:border-box;margin:0;padding:0;}
+    body{background:var(--bg);color:var(--text);font-family:'IBM Plex Sans',sans-serif;font-size:14px;min-height:100vh;}
+    header{display:flex;align-items:center;justify-content:space-between;padding:18px 32px;border-bottom:1px solid var(--border);background:var(--surface);position:sticky;top:0;z-index:100;}
+    .logo{display:flex;align-items:center;gap:12px;}
+    .logo-mark{width:36px;height:36px;background:var(--accent);clip-path:polygon(50% 0%,100% 25%,100% 75%,50% 100%,0% 75%,0% 25%);display:flex;align-items:center;justify-content:center;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;color:var(--bg);}
+    .logo-text{font-size:16px;font-weight:700;letter-spacing:.5px;}
+    .logo-sub{font-size:11px;color:var(--muted);font-family:'IBM Plex Mono',monospace;}
+    .header-right{display:flex;align-items:center;gap:20px;}
+    .last-update{font-family:'IBM Plex Mono',monospace;font-size:11px;color:var(--muted);}
+    .last-update span{color:var(--accent);}
+    .status-dot{width:8px;height:8px;border-radius:50%;background:var(--accent);box-shadow:0 0 6px var(--accent);animation:pulse 2s infinite;}
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+    .filters{display:flex;gap:12px;padding:14px 32px;border-bottom:1px solid var(--border);background:var(--bg);flex-wrap:wrap;align-items:flex-end;}
+    .filter-group{display:flex;flex-direction:column;gap:4px;}
+    .filter-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace;}
+    select,input[type=date]{background:var(--surface);border:1px solid var(--border);color:var(--text);padding:6px 12px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;cursor:pointer;transition:border-color .2s;}
+    select:hover,input[type=date]:hover{border-color:var(--accent);}
+    select:focus,input[type=date]:focus{outline:none;border-color:var(--accent);}
+    .btn-apply{background:var(--accent);color:var(--bg);border:none;padding:7px 18px;border-radius:4px;font-family:'IBM Plex Mono',monospace;font-size:12px;font-weight:600;cursor:pointer;transition:opacity .2s;}
+    .btn-apply:hover{opacity:.85;}
+    .main{padding:22px 32px;display:flex;flex-direction:column;gap:20px;}
+    .kpi-strip{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:14px;}
+    .kpi{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;position:relative;overflow:hidden;transition:border-color .2s;}
+    .kpi:hover{border-color:var(--accent);}
+    .kpi::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+    .kpi.ok::before{background:var(--ok)}.kpi.warn::before{background:var(--warn)}.kpi.fail::before{background:var(--fail)}.kpi.info::before{background:var(--accent3)}
+    .kpi-label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1.2px;font-family:'IBM Plex Mono',monospace;margin-bottom:8px;}
+    .kpi-value{font-size:34px;font-weight:700;font-family:'IBM Plex Mono',monospace;line-height:1;margin-bottom:6px;}
+    .kpi.ok .kpi-value{color:var(--ok)}.kpi.warn .kpi-value{color:var(--warn)}.kpi.fail .kpi-value{color:var(--fail)}.kpi.info .kpi-value{color:var(--accent3)}
+    .kpi-sub{font-size:11px;color:var(--muted);}
+    .gauge-wrap{position:relative;width:120px;height:68px;margin:0 auto 6px;}
+    .gauge-wrap canvas{width:100%!important;height:100%!important;}
+    .gauge-center{position:absolute;bottom:0;left:50%;transform:translateX(-50%);font-family:'IBM Plex Mono',monospace;font-size:18px;font-weight:700;color:var(--text);}
+    .charts-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+    @media(max-width:768px){.charts-row{grid-template-columns:1fr;}}
+    .card{background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:18px;}
+    .card-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace;margin-bottom:14px;display:flex;justify-content:space-between;align-items:center;}
+    .card-title .badge{background:var(--border);color:var(--muted);padding:2px 8px;border-radius:12px;font-size:10px;}
+    .chart-container{position:relative;height:210px;}
+    .table-card{background:var(--surface);border:1px solid var(--border);border-radius:8px;overflow:hidden;}
+    .table-header{padding:14px 18px;border-bottom:1px solid var(--border);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;}
+    .table-title{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace;}
+    .table-controls{display:flex;gap:8px;}
+    .search-box{background:var(--bg);border:1px solid var(--border);color:var(--text);padding:5px 12px;border-radius:4px;font-size:12px;font-family:'IBM Plex Mono',monospace;width:180px;}
+    .search-box::placeholder{color:var(--muted);}
+    .search-box:focus{outline:none;border-color:var(--accent);}
+    table{width:100%;border-collapse:collapse;}
+    th{text-align:left;padding:9px 14px;font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:1px;font-family:'IBM Plex Mono',monospace;border-bottom:1px solid var(--border);white-space:nowrap;cursor:pointer;}
+    th:hover{color:var(--accent);}
+    td{padding:10px 14px;border-bottom:1px solid var(--border);font-size:12px;font-family:'IBM Plex Mono',monospace;}
+    tr:last-child td{border-bottom:none;}
+    tr:hover td{background:rgba(255,255,255,.02);}
+    .sla-pill{display:inline-block;padding:2px 10px;border-radius:12px;font-size:10px;font-weight:600;}
+    .sla-ok{background:rgba(0,212,160,.15);color:var(--ok);}
+    .sla-warn{background:rgba(245,158,11,.15);color:var(--warn);}
+    .sla-fail{background:rgba(239,68,68,.15);color:var(--fail);}
+    .pct-bar-wrap{width:70px;height:4px;background:var(--border);border-radius:2px;}
+    .pct-bar-fill{height:100%;border-radius:2px;}
+    .error-box{background:rgba(239,68,68,.08);border:1px solid rgba(239,68,68,.3);border-radius:8px;padding:16px;color:var(--fail);font-family:'IBM Plex Mono',monospace;font-size:12px;display:none;}
+    footer{text-align:center;padding:18px;color:var(--muted);font-size:11px;font-family:'IBM Plex Mono',monospace;border-top:1px solid var(--border);}
+  </style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-mark">SLA</div>
+    <div>
+      <div class="logo-text">Monitor de Entregas</div>
+      <div class="logo-sub">Distribución Postal · MailAmericas</div>
+    </div>
+  </div>
+  <div class="header-right">
+    <div class="last-update">actualizado: <span id="lastUpdate">—</span></div>
+    <div class="status-dot"></div>
+  </div>
+</header>
+
+<div class="filters">
+  <div class="filter-group">
+    <label>Sub Región</label>
+    <select id="filterRegion"><option value="">Todas</option></select>
+  </div>
+  <div class="filter-group">
+    <label>IATA (Destino)</label>
+    <select id="filterIATA"><option value="">Todos</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Provincia</label>
+    <select id="filterProv"><option value="">Todas</option></select>
+  </div>
+  <div class="filter-group">
+    <label>Estado SLA</label>
+    <select id="filterSLA">
+      <option value="">Todos</option>
+      <option value="ok">A tiempo</option>
+      <option value="warn">En riesgo</option>
+      <option value="fail">Incumplido</option>
+    </select>
+  </div>
+  <button class="btn-apply" onclick="applyFilters()">Aplicar</button>
+</div>
+
+<div class="main">
+
+  <div id="errorBox" class="error-box">
+    ⚠ No se encontró data.json — mostrando datos de simulación. N8N lo generará automáticamente una vez configurado.
+  </div>
+
+  <div class="kpi-strip">
+    <div class="kpi info"><div class="kpi-label">Total piezas</div><div class="kpi-value" id="kpiTotal">—</div><div class="kpi-sub">en el período</div></div>
+    <div class="kpi ok"><div class="kpi-label">A tiempo</div><div class="kpi-value" id="kpiOk">—</div><div class="kpi-sub" id="kpiOkPct">—</div></div>
+    <div class="kpi warn"><div class="kpi-label">En riesgo</div><div class="kpi-value" id="kpiWarn">—</div><div class="kpi-sub" id="kpiWarnPct">—</div></div>
+    <div class="kpi fail"><div class="kpi-label">Incumplidas</div><div class="kpi-value" id="kpiFail">—</div><div class="kpi-sub" id="kpiFailPct">—</div></div>
+    <div class="kpi ok">
+      <div class="kpi-label">% SLA Global</div>
+      <div class="gauge-wrap"><canvas id="gaugeChart"></canvas><div class="gauge-center" id="gaugePct">—</div></div>
+      <div class="kpi-sub">cumplimiento</div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">Cumplimiento diario <span class="badge">30d</span></div>
+      <div class="chart-container"><canvas id="trendChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">SLA por Sub Región <span class="badge">comparativo</span></div>
+      <div class="chart-container"><canvas id="regionChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="charts-row">
+    <div class="card">
+      <div class="card-title">% SLA por IATA <span class="badge">top destinos</span></div>
+      <div class="chart-container"><canvas id="iataChart"></canvas></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Distribución días de entrega <span class="badge">histograma</span></div>
+      <div class="chart-container"><canvas id="histChart"></canvas></div>
+    </div>
+  </div>
+
+  <div class="table-card">
+    <div class="table-header">
+      <div class="table-title">Detalle por Código Postal</div>
+      <div class="table-controls">
+        <input class="search-box" id="tableSearch" placeholder="Buscar CP, IATA, destino…" oninput="filterTable()"/>
+      </div>
+    </div>
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortTable('cp')">CP ↕</th>
+            <th onclick="sortTable('iata')">IATA ↕</th>
+            <th onclick="sortTable('subregion')">Sub Región ↕</th>
+            <th onclick="sortTable('destino')">Destino</th>
+            <th onclick="sortTable('provincia')">Provincia ↕</th>
+            <th onclick="sortTable('sla_dias')">SLA ↕</th>
+            <th onclick="sortTable('total')">Total ↕</th>
+            <th onclick="sortTable('ok')">A tiempo ↕</th>
+            <th onclick="sortTable('warn')">Riesgo ↕</th>
+            <th onclick="sortTable('fail')">Incumpl. ↕</th>
+            <th onclick="sortTable('pct')">% Cumpl. ↕</th>
+            <th>Estado</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<footer>SLA Dashboard · Datos actualizados por N8N · GitHub Pages · MailAmericas</footer>
+
+<script>
+const DATA_URL = './data.json';
+
+// ─── DEMO DATA ───
+function generateDemoData() {
+  const rows = [
+    {cp:'1000',iata:'BUE',subregion:'AMBA',destino:'Capital Federal',provincia:'BUENOS AIRES',sla_dias:3,total:3200,ok:2880,warn:192,fail:128,pct:90.0},
+    {cp:'1601',iata:'GBAN',subregion:'AMBA',destino:'Gran Bs As Norte',provincia:'BUENOS AIRES',sla_dias:3,total:2100,ok:1680,warn:252,fail:168,pct:80.0},
+    {cp:'1701',iata:'GBAO',subregion:'AMBA',destino:'Gran Bs As Oeste',provincia:'BUENOS AIRES',sla_dias:3,total:1850,ok:1406,warn:277,fail:167,pct:76.0},
+    {cp:'1772',iata:'GBAS',subregion:'AMBA',destino:'Gran Bs As Sur',provincia:'BUENOS AIRES',sla_dias:3,total:2200,ok:1650,warn:330,fail:220,pct:75.0},
+    {cp:'1900',iata:'LPG',subregion:'AMBA',destino:'Ciudad Capital',provincia:'BUENOS AIRES',sla_dias:3,total:980,ok:784,warn:98,fail:98,pct:80.0},
+    {cp:'1808',iata:'IBUE',subregion:'AMBA',destino:'Resto Provincia BA',provincia:'BUENOS AIRES',sla_dias:5,total:760,ok:494,warn:152,fail:114,pct:65.0},
+    {cp:'2000',iata:'ROS',subregion:'CENTRO',destino:'Ciudad Principal',provincia:'SANTA FE',sla_dias:4,total:1820,ok:1456,warn:255,fail:109,pct:80.0},
+    {cp:'2100',iata:'ROS',subregion:'CENTRO',destino:'Resto Provincia SF',provincia:'SANTA FE',sla_dias:6,total:1240,ok:868,warn:248,fail:124,pct:70.0},
+    {cp:'2300',iata:'SFN',subregion:'CENTRO',destino:'Resto Provincia SF',provincia:'SANTA FE',sla_dias:6,total:1100,ok:715,warn:220,fail:165,pct:65.0},
+    {cp:'2400',iata:'FCO',subregion:'CENTRO',destino:'Ciudad Principal',provincia:'CORDOBA',sla_dias:4,total:1680,ok:1344,warn:252,fail:84,pct:80.0},
+    {cp:'2417',iata:'COR',subregion:'CENTRO',destino:'Resto Provincia CBA',provincia:'CORDOBA',sla_dias:6,total:940,ok:611,warn:188,fail:141,pct:65.0},
+    {cp:'2354',iata:'SDE',subregion:'NORTE',destino:'Resto Provincia',provincia:'SANTIAGO DEL ESTERO',sla_dias:7,total:620,ok:372,warn:124,fail:124,pct:60.0}
+  ];
+  const trend = [];
+  for(let i=29;i>=0;i--){const d=new Date();d.setDate(d.getDate()-i);trend.push({date:d.toISOString().slice(0,10),pct:+(70+Math.random()*20).toFixed(1)});}
+  const totals = rows.reduce((a,r)=>({total:a.total+r.total,ok:a.ok+r.ok,warn:a.warn+r.warn,fail:a.fail+r.fail}),{total:0,ok:0,warn:0,fail:0});
+  const byIata={};rows.forEach(r=>{if(!byIata[r.iata])byIata[r.iata]={iata:r.iata,subregion:r.subregion,total:0,ok:0,warn:0,fail:0};byIata[r.iata].total+=r.total;byIata[r.iata].ok+=r.ok;byIata[r.iata].warn+=r.warn;byIata[r.iata].fail+=r.fail;});
+  const byCanal=Object.values(byIata).map(r=>({...r,pct:r.total>0?+((r.ok/r.total)*100).toFixed(1):0}));
+  const byReg={};rows.forEach(r=>{if(!byReg[r.subregion])byReg[r.subregion]={region:r.subregion,total:0,ok:0,warn:0,fail:0};byReg[r.subregion].total+=r.total;byReg[r.subregion].ok+=r.ok;byReg[r.subregion].warn+=r.warn;byReg[r.subregion].fail+=r.fail;});
+  const bySubRegion=Object.values(byReg).map(r=>({...r,pct:r.total>0?+((r.ok/r.total)*100).toFixed(1):0}));
+  const hist=[1,2,3,4,5,6,7,8,9,10,12,15,20,30].map(d=>({dias:d,cantidad:Math.floor(Math.random()*1500+100)}));
+  return {updated_at:new Date().toISOString(),summary:{...totals,pct_sla:+((totals.ok/totals.total)*100).toFixed(1)},trend,by_cp:rows,by_canal:byCanal,by_subregion:bySubRegion,histogram:hist};
+}
+
+// ─── STATE ───
+let raw=null, filtered=null, charts={}, sortKey='pct', sortAsc=true;
+
+// ─── INIT ───
+async function init(){
+  try{
+    const res=await fetch(DATA_URL+'?t='+Date.now());
+    if(!res.ok) throw new Error();
+    raw=await res.json();
+  } catch(e){
+    document.getElementById('errorBox').style.display='block';
+    raw=generateDemoData();
+  }
+  populateFilters();
+  applyFilters();
+  document.getElementById('lastUpdate').textContent=new Date(raw.updated_at).toLocaleString('es-AR');
+}
+
+function populateFilters(){
+  const regions=[...new Set(raw.by_cp.map(r=>r.subregion).filter(Boolean))].sort();
+  const iatas  =[...new Set(raw.by_cp.map(r=>r.iata).filter(Boolean))].sort();
+  const provs  =[...new Set(raw.by_cp.map(r=>r.provincia).filter(Boolean))].sort();
+  const add=(id,arr)=>{const s=document.getElementById(id);arr.forEach(v=>{const o=document.createElement('option');o.value=v;o.textContent=v;s.appendChild(o);});};
+  add('filterRegion',regions); add('filterIATA',iatas); add('filterProv',provs);
+}
+
+function applyFilters(){
+  const reg =document.getElementById('filterRegion').value;
+  const iata=document.getElementById('filterIATA').value;
+  const prov=document.getElementById('filterProv').value;
+  const sla =document.getElementById('filterSLA').value;
+  let data=[...raw.by_cp];
+  if(reg)  data=data.filter(r=>r.subregion===reg);
+  if(iata) data=data.filter(r=>r.iata===iata);
+  if(prov) data=data.filter(r=>r.provincia===prov);
+  if(sla){data=data.filter(r=>{if(sla==='ok') return r.pct>=85;if(sla==='warn') return r.pct>=70&&r.pct<85;return r.pct<70;});}
+  filtered=data;
+  renderAll();
+}
+
+function renderAll(){
+  const t=filtered.reduce((a,r)=>({total:a.total+r.total,ok:a.ok+r.ok,warn:a.warn+r.warn,fail:a.fail+r.fail}),{total:0,ok:0,warn:0,fail:0});
+  const pct=t.total?+((t.ok/t.total)*100).toFixed(1):0;
+  document.getElementById('kpiTotal').textContent=t.total.toLocaleString('es-AR');
+  document.getElementById('kpiOk').textContent=t.ok.toLocaleString('es-AR');
+  document.getElementById('kpiWarn').textContent=t.warn.toLocaleString('es-AR');
+  document.getElementById('kpiFail').textContent=t.fail.toLocaleString('es-AR');
+  document.getElementById('kpiOkPct').textContent=pct+'% del total';
+  document.getElementById('kpiWarnPct').textContent=t.total?(((t.warn/t.total)*100).toFixed(1)+'% del total'):'—';
+  document.getElementById('kpiFailPct').textContent=t.total?(((t.fail/t.total)*100).toFixed(1)+'% del total'):'—';
+  document.getElementById('gaugePct').textContent=pct+'%';
+  renderGauge(pct); renderTrend(); renderIATA(); renderRegion(); renderHist(); renderTable();
+}
+
+const C={ok:'#00D4A0',warn:'#F59E0B',fail:'#EF4444',info:'#4A90D9',grid:'#252A35',muted:'#6B7280'};
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+function renderGauge(pct){
+  destroyChart('gauge');
+  const color=pct>=85?C.ok:pct>=70?C.warn:C.fail;
+  charts['gauge']=new Chart(document.getElementById('gaugeChart'),{type:'doughnut',data:{datasets:[{data:[pct,100-pct],backgroundColor:[color,'#252A35'],borderWidth:0,circumference:180,rotation:270}]},options:{cutout:'78%',plugins:{legend:{display:false},tooltip:{enabled:false}},animation:{duration:800}}});
+}
+
+function renderTrend(){
+  destroyChart('trend');
+  const labels=raw.trend.map(r=>r.date.slice(5));
+  const values=raw.trend.map(r=>r.pct);
+  charts['trend']=new Chart(document.getElementById('trendChart'),{type:'line',data:{labels,datasets:[{label:'% SLA',data:values,borderColor:C.ok,backgroundColor:'rgba(0,212,160,.08)',borderWidth:2,pointRadius:2,pointHoverRadius:5,fill:true,tension:.3},{label:'Meta 85%',data:labels.map(()=>85),borderColor:'rgba(245,158,11,.6)',borderDash:[4,4],borderWidth:1,pointRadius:0,fill:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:C.muted,font:{size:11}}}},scales:{x:{ticks:{color:C.muted,font:{size:10}},grid:{color:C.grid}},y:{min:40,max:100,ticks:{color:C.muted,font:{size:10},callback:v=>v+'%'},grid:{color:C.grid}}}}});
+}
+
+function renderIATA(){
+  destroyChart('iata');
+  // Calcular por IATA desde filtered
+  const byIata={};
+  filtered.forEach(r=>{
+    const k=r.iata||'SIN';
+    if(!byIata[k])byIata[k]={ok:0,total:0};
+    byIata[k].ok+=r.ok; byIata[k].total+=r.total;
+  });
+  const sorted=Object.entries(byIata).map(([k,v])=>({iata:k,pct:v.total?+((v.ok/v.total)*100).toFixed(1):0})).sort((a,b)=>a.pct-b.pct);
+  const labels=sorted.map(r=>r.iata);
+  const values=sorted.map(r=>r.pct);
+  const colors=values.map(v=>v>=85?C.ok:v>=70?C.warn:C.fail);
+  charts['iata']=new Chart(document.getElementById('iataChart'),{type:'bar',data:{labels,datasets:[{label:'% SLA',data:values,backgroundColor:colors,borderRadius:3,borderSkipped:false}]},options:{indexAxis:'y',responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{min:0,max:100,ticks:{color:C.muted,font:{size:10},callback:v=>v+'%'},grid:{color:C.grid}},y:{ticks:{color:C.muted,font:{size:11}},grid:{color:C.grid}}}}});
+}
+
+function renderRegion(){
+  destroyChart('region');
+  const byReg={};
+  filtered.forEach(r=>{
+    const k=r.subregion||'SIN';
+    if(!byReg[k])byReg[k]={ok:0,warn:0,fail:0};
+    byReg[k].ok+=r.ok; byReg[k].warn+=r.warn; byReg[k].fail+=r.fail;
+  });
+  const labels=Object.keys(byReg);
+  charts['region']=new Chart(document.getElementById('regionChart'),{type:'bar',data:{labels,datasets:[{label:'A tiempo',data:labels.map(l=>byReg[l].ok),backgroundColor:C.ok,borderRadius:3},{label:'En riesgo',data:labels.map(l=>byReg[l].warn),backgroundColor:C.warn,borderRadius:3},{label:'Incumplido',data:labels.map(l=>byReg[l].fail),backgroundColor:C.fail,borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:C.muted,font:{size:11}}}},scales:{x:{stacked:true,ticks:{color:C.muted,font:{size:11}},grid:{color:C.grid}},y:{stacked:true,ticks:{color:C.muted,font:{size:10}},grid:{color:C.grid}}}}});
+}
+
+function renderHist(){
+  destroyChart('hist');
+  const hist=raw.histogram;
+  const maxSLA=filtered.length?Math.max(...filtered.map(f=>f.sla_dias)):7;
+  charts['hist']=new Chart(document.getElementById('histChart'),{type:'bar',data:{labels:hist.map(r=>r.dias+'d'),datasets:[{label:'Piezas',data:hist.map(r=>r.cantidad),backgroundColor:hist.map(r=>r.dias<=maxSLA?'rgba(0,212,160,.7)':'rgba(239,68,68,.7)'),borderRadius:3}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:C.muted,font:{size:10}},grid:{color:C.grid}},y:{ticks:{color:C.muted,font:{size:10}},grid:{color:C.grid}}}}});
+}
+
+// ─── TABLE ───
+let tableRows=[];
+function sortTable(key){
+  if(sortKey===key) sortAsc=!sortAsc; else {sortKey=key;sortAsc=true;}
+  renderTableRows(tableRows);
+}
+function renderTable(){
+  tableRows=[...filtered];
+  renderTableRows(tableRows);
+}
+function renderTableRows(rows){
+  const q=(document.getElementById('tableSearch').value||'').toLowerCase();
+  let r=rows.filter(r=>!q||(r.cp+r.iata+r.destino+r.provincia+r.subregion).toLowerCase().includes(q));
+  r=[...r].sort((a,b)=>{
+    const va=a[sortKey]??'',vb=b[sortKey]??'';
+    return (typeof va==='number'?va-vb:String(va).localeCompare(String(vb)))*(sortAsc?1:-1);
+  });
+  const tbody=document.getElementById('tableBody');
+  tbody.innerHTML=r.map(r=>{
+    const cls=r.pct>=85?'sla-ok':r.pct>=70?'sla-warn':'sla-fail';
+    const lbl=r.pct>=85?'A tiempo':r.pct>=70?'En riesgo':'Incumplido';
+    const barC=r.pct>=85?C.ok:r.pct>=70?C.warn:C.fail;
+    return `<tr>
+      <td>${r.cp}</td>
+      <td style="font-weight:600;color:var(--accent3)">${r.iata||'—'}</td>
+      <td>${r.subregion||'—'}</td>
+      <td style="color:var(--muted)">${r.destino||'—'}</td>
+      <td>${r.provincia||'—'}</td>
+      <td style="color:var(--muted)">${r.sla_dias}d</td>
+      <td>${(r.total||0).toLocaleString('es-AR')}</td>
+      <td style="color:${C.ok}">${(r.ok||0).toLocaleString('es-AR')}</td>
+      <td style="color:${C.warn}">${(r.warn||0).toLocaleString('es-AR')}</td>
+      <td style="color:${C.fail}">${(r.fail||0).toLocaleString('es-AR')}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:7px">
+          <div class="pct-bar-wrap"><div class="pct-bar-fill" style="width:${r.pct}%;background:${barC}"></div></div>
+          <span style="font-size:11px;color:${barC}">${r.pct}%</span>
+        </div>
+      </td>
+      <td><span class="sla-pill ${cls}">${lbl}</span></td>
+    </tr>`;
+  }).join('');
+}
+function filterTable(){renderTableRows(tableRows);}
+
+init();
+setInterval(init, 5*60*1000);
+</script>
+</body>
+</html>
