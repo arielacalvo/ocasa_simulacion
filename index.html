@@ -283,6 +283,7 @@
     .status-msg.running { color: var(--accent); }
     .status-msg.success { color: var(--ok); }
     .status-msg.error   { color: var(--fail); }
+    .status-msg.idle    { color: var(--ok); }
     .status-updated {
       font-family: 'Space Mono', monospace;
       font-size: 11px; color: var(--muted);
@@ -943,13 +944,33 @@ async function runSimulation() {
     await pollForResult(requestId, 40); // 40 intentos x 3s = 2 minutos máx
 
   } catch(e) {
-    console.warn('Worker no disponible, cargando demo:', e);
-    setStatus('running', '⟳ Generando datos de simulación demo…');
-    await sleep(1200);
-    resultData = buildDemoData(cliente, aps, pk, parseInt(periodo));
-    renderDashboard();
-    setStatus('success', `✓ Simulación demo — ${aps.length} APs procesados`);
-    showToast('Modo demo: Worker no disponible', 'ok');
+    // ── Clasificar el error para dar feedback útil en lugar de caer en demo silencioso ──
+    const msg = e.message || String(e);
+    console.error('[SLA] Error al llamar al Worker:', e);
+
+    if (msg.includes('Failed to fetch') || msg.includes('NetworkError') ||
+        msg.includes('Load failed') || msg.includes('CORS')) {
+      // El Worker no responde o la URL es incorrecta
+      setStatus('error',
+        '✗ No se pudo conectar con el Cloudflare Worker. ' +
+        'Verificá que CONFIG.WORKER_URL sea la URL correcta y que el Worker esté desplegado y activo en Cloudflare.'
+      );
+      showToast('Sin conexión con el Worker — revisá la consola', 'err');
+
+    } else if (/HTTP [45]\d{2}/.test(msg)) {
+      // Error HTTP del Worker (502 → GITHUB_TOKEN/GITHUB_OWNER mal configurados)
+      setStatus('error',
+        `✗ El Worker respondió con error ${msg}. ` +
+        'En el dashboard de Cloudflare verificá: (1) que el secret GITHUB_TOKEN esté cargado, ' +
+        '(2) que GITHUB_OWNER en worker.js sea "ariel-calvo" y el Worker esté re-desplegado.'
+      );
+      showToast('Error del Worker: ' + msg, 'err');
+
+    } else {
+      // Otro error (respuesta inesperada, JSON inválido, Worker rechazó la solicitud)
+      setStatus('error', '✗ Error al procesar la solicitud: ' + msg);
+      showToast('Error: ' + msg, 'err');
+    }
   } finally {
     btn.disabled = false;
     btn.classList.remove('loading');
@@ -1307,8 +1328,44 @@ function businessDaysBetween(from, to) {
   return count;
 }
 
+// ═══════════════════════════════════════════════════════════
+//  DIAGNÓSTICO DEL WORKER AL INICIAR
+//  Hace un OPTIONS (preflight) para verificar que el Worker
+//  responde antes de que el usuario haga clic en Calcular SLA.
+// ═══════════════════════════════════════════════════════════
+async function checkWorkerHealth() {
+  try {
+    // Usamos un HEAD/GET simple — el Worker rechazará con 405 pero eso indica que está vivo
+    const ctrl = new AbortController();
+    const timeout = setTimeout(() => ctrl.abort(), 6000);
+    const res = await fetch(CONFIG.WORKER_URL, {
+      method: 'OPTIONS',
+      signal: ctrl.signal
+    });
+    clearTimeout(timeout);
+    // OPTIONS devuelve 200 con los headers CORS → Worker activo
+    console.log('[SLA] Worker activo:', CONFIG.WORKER_URL, '→', res.status);
+    setStatus('idle', '✓ Cloudflare Worker conectado. Configurá los parámetros y hacé clic en Calcular SLA.');
+  } catch(e) {
+    const msg = e.message || '';
+    if (msg.includes('abort') || msg.includes('AbortError')) {
+      setStatus('error',
+        '⚠ Tiempo de espera agotado al verificar el Worker. ' +
+        'Revisá que la URL sea correcta: ' + CONFIG.WORKER_URL
+      );
+    } else {
+      setStatus('error',
+        '⚠ No se pudo verificar el Cloudflare Worker (' + msg + '). ' +
+        'El Worker podría estar caído o la URL en CONFIG.WORKER_URL es incorrecta.'
+      );
+    }
+    console.warn('[SLA] Worker no responde:', e);
+  }
+}
+
 // ── START ──
 init();
+checkWorkerHealth();
 </script>
 </body>
 </html>
