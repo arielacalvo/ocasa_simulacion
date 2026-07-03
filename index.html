@@ -731,13 +731,12 @@
 //  CONFIG — ajustar con los valores reales
 // ═══════════════════════════════════════════════════════════
 const CONFIG = {
-  // URL del Cloudflare Worker (proxy seguro hacia GitHub)
-  WORKER_URL: 'https://sla-ocasa-proxy.ariel-calvo.workers.dev',
-  // URL del data.json en GitHub Pages (resultado generado por N8N)
+  // URL del webhook de N8N (el trigger del workflow)
+  N8N_WEBHOOK_URL: 'https://n8nappv2.ocasa.com:5688/webhook/sla-ultima-milla',
+  // URL del data.json en GitHub Pages (archivo generado por N8N)
   DATA_JSON_URL: './data.json',
-  // URL del request.json en GitHub Pages (para verificar si N8N ya tomó la solicitud)
-  REQUEST_JSON_URL: './request.json',
   // Google Sheets URL del archivo Mediciones APs (para cargar combos)
+  // Formato: https://docs.google.com/spreadsheets/d/ID/gviz/tq?tqx=out:json&sheet=HOJA
   GSHEETS_MEDICIONES_URL: 'https://docs.google.com/spreadsheets/d/1ajom-b13tnwHotDLoc5rHFZqWKtRtgF84gUWU8JXIZg/gviz/tq?tqx=out:json&gid=1078134019',
 };
 
@@ -919,37 +918,33 @@ async function runSimulation() {
 
   const payload = { cliente, aps, pk_tipo: pk, dias_periodo: parseInt(periodo) };
 
-  setStatus('running', '⟳ Enviando solicitud…');
+  setStatus('running', '⟳ Enviando solicitud a N8N…');
   const btn = document.getElementById('btnRun');
   btn.disabled = true;
   btn.classList.add('loading');
   btn.querySelector('.btn-icon').textContent = 'Calculando…';
 
   try {
-    // 1. Enviar la solicitud al Worker (que sube request.json a GitHub)
-    const res = await fetch(CONFIG.WORKER_URL, {
+    const res = await fetch(CONFIG.N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    const ack = await res.json();
-    if (!ack.ok) throw new Error(ack.error || 'El Worker rechazó la solicitud');
 
-    const requestId = ack.request_id;
-
-    // 2. Esperar a que N8N detecte y procese el request.json
-    setStatus('running', '⟳ Solicitud enviada. Esperando que N8N la tome (puede tardar hasta 30s)…');
-    await pollForResult(requestId, 40); // 40 intentos x 3s = 2 minutos máx
+    setStatus('running', '⟳ N8N procesando… esperando resultado…');
+    // Polling: intentamos cargar data.json cada 4s hasta 90s
+    await pollForResult(30);
 
   } catch(e) {
-    console.warn('Worker no disponible, cargando demo:', e);
+    // Si el webhook no está configurado, cargamos demo igual
+    console.warn('Webhook no disponible, cargando demo:', e);
     setStatus('running', '⟳ Generando datos de simulación demo…');
     await sleep(1200);
     resultData = buildDemoData(cliente, aps, pk, parseInt(periodo));
     renderDashboard();
     setStatus('success', `✓ Simulación demo — ${aps.length} APs procesados`);
-    showToast('Modo demo: Worker no disponible', 'ok');
+    showToast('Modo demo: webhook N8N no disponible', 'ok');
   } finally {
     btn.disabled = false;
     btn.classList.remove('loading');
@@ -957,46 +952,27 @@ async function runSimulation() {
   }
 }
 
-async function pollForResult(requestId, maxAttempts) {
-  let lastStatus = 'pending';
-
+async function pollForResult(maxAttempts) {
   for (let i = 0; i < maxAttempts; i++) {
     await sleep(3000);
-
-    // ── Chequear el estado del request.json ──
     try {
-      const reqRes = await fetch(CONFIG.REQUEST_JSON_URL + '?t=' + Date.now());
-      if (reqRes.ok) {
-        const reqData = await reqRes.json();
-        if (reqData.request_id === requestId && reqData.status !== lastStatus) {
-          lastStatus = reqData.status;
-          if (lastStatus === 'processing') {
-            setStatus('running', '⟳ N8N está procesando la solicitud…');
-          }
-        }
-      }
-    } catch(e) { /* sigue intentando */ }
-
-    // ── Chequear si ya está el resultado en data.json ──
-    try {
-      const dataRes = await fetch(CONFIG.DATA_JSON_URL + '?t=' + Date.now());
-      if (dataRes.ok) {
-        const data = await dataRes.json();
-        // Verificamos que corresponda a esta solicitud (por request_id) o que sea reciente
-        const matchesRequest = data.request_id === requestId;
-        const age = (Date.now() - new Date(data.updated_at).getTime()) / 1000;
-        if (matchesRequest || age < 150) {
-          resultData = data;
-          renderDashboard();
-          setStatus('success', `✓ SLA calculado · ${data.summary?.total || 0} equipos procesados`);
-          showToast('Cálculo completado', 'ok');
-          return;
-        }
+      const ts = Date.now();
+      const res = await fetch(CONFIG.DATA_JSON_URL + '?t=' + ts);
+      if (!res.ok) continue;
+      const data = await res.json();
+      // Verificar que es un resultado reciente (menos de 3 minutos)
+      const age = (Date.now() - new Date(data.updated_at).getTime()) / 1000;
+      if (age < 180) {
+        resultData = data;
+        renderDashboard();
+        setStatus('success', `✓ SLA calculado · ${data.summary?.total || 0} equipos procesados`);
+        showToast('Cálculo completado', 'ok');
+        return;
       }
     } catch(e) { /* sigue intentando */ }
   }
-
-  setStatus('error', '✗ Tiempo de espera agotado. Verificá que el workflow de N8N esté activo.');
+  // Timeout
+  setStatus('error', '✗ Tiempo de espera agotado. Revisá N8N y volvé a intentarlo.');
   showToast('Timeout: N8N no respondió en tiempo', 'err');
 }
 
