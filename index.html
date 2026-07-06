@@ -655,14 +655,18 @@
     </div>
 
     <!-- CHARTS -->
-    <div class="charts-row">
+    <!-- Trend full width -->
+    <div class="charts-row" style="grid-template-columns:1fr">
       <div class="card">
         <div class="card-head">
-          <div class="card-title">Evolución diaria SLA</div>
+          <div class="card-title">Evolución diaria SLA — % cumplimiento por fecha de vencimiento</div>
           <div class="card-badge" id="trendBadge">30d</div>
         </div>
-        <div class="chart-box"><canvas id="trendChart"></canvas></div>
+        <div class="chart-box" style="height:220px"><canvas id="trendChart"></canvas></div>
       </div>
+    </div>
+    <!-- % SLA por IATA (reemplaza Estado por AP) -->
+    <div class="charts-row" style="grid-template-columns:1fr 1fr">
       <div class="card">
         <div class="card-head">
           <div class="card-title">% SLA por IATA</div>
@@ -670,8 +674,9 @@
         </div>
         <div class="chart-box"><canvas id="iataChart"></canvas></div>
       </div>
-    </div>
 
+    <div class="charts-row">
+    </div><!-- /charts-row iata -->
     <div class="charts-row">
       <div class="card">
         <div class="card-head">
@@ -1055,21 +1060,61 @@ function renderGauge(pct) {
   });
 }
 
-function renderTrend(trend) {
+function renderTrend(_ignored) {
+  // Agrupa por FECHA DE VENCIMIENTO y calcula % SLA diario
   destroyChart('trend');
+  const equipos = resultData.equipos || [];
+  const tMap = {};
+  for (const eq of equipos) {
+    const fecha = (eq.fecha_vto && eq.fecha_vto !== '—') ? String(eq.fecha_vto).slice(0,10) : null;
+    if (!fecha || fecha.length < 10) continue;
+    if (!tMap[fecha]) tMap[fecha] = { total:0, cumplido:0 };
+    tMap[fecha].total++;
+    if (eq.estado === 'CUMPLIDO') tMap[fecha].cumplido++;
+  }
+  const sorted  = Object.entries(tMap).sort(([a],[b]) => a.localeCompare(b));
+  const labels  = sorted.map(([f]) => f.slice(5));          // MM-DD
+  const pcts    = sorted.map(([,v]) => v.total ? +((v.cumplido/v.total)*100).toFixed(1) : 0);
+  const colors  = pcts.map(p => p >= 85 ? C.ok : p >= 65 ? C.warn : C.fail);
+
   charts['trend'] = new Chart(document.getElementById('trendChart'), {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels: trend.map(r => r.fecha.slice(5)),
+      labels,
       datasets: [
-        { label: 'Cumplido', data: trend.map(r => r.cumplido), borderColor: C.ok,   backgroundColor: 'rgba(34,211,165,.07)',  borderWidth: 2, pointRadius: 2, fill: true, tension: .35 },
-        { label: 'Incumplido', data: trend.map(r => r.incumplido), borderColor: C.fail, backgroundColor: 'rgba(244,63,94,.06)', borderWidth: 2, pointRadius: 2, fill: true, tension: .35 },
-        { label: 'Pendiente', data: trend.map(r => r.pendiente), borderColor: C.pend, backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 1, borderDash: [4,3], fill: false, tension: .35 }
+        {
+          label: '% SLA',
+          data: pcts,
+          backgroundColor: colors,
+          borderRadius: 3,
+          borderSkipped: false,
+          order: 1
+        },
+        {
+          // Línea de referencia 85%
+          label: 'Meta 85%',
+          data: Array(labels.length).fill(85),
+          type: 'line',
+          borderColor: 'rgba(255,255,255,0.3)',
+          borderDash: [5,4],
+          borderWidth: 1.5,
+          pointRadius: 0,
+          fill: false,
+          order: 0
+        }
       ]
     },
     options: { ...chartDefaults, scales: {
       x: { ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } },
-      y: { ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid }, min: 0 }
+      y: {
+        min: 0, max: 100,
+        ticks: { color: C.muted, font: { size: 10 }, callback: v => v + '%' },
+        grid: { color: C.grid }
+      }
+    },
+    plugins: {
+      ...chartDefaults.plugins,
+      tooltip: { callbacks: { label: ctx => ` SLA: ${ctx.parsed.y}%` } }
     }}
   });
 }
@@ -1077,7 +1122,6 @@ function renderTrend(trend) {
 function renderIataChart(byIata) {
   destroyChart('iata');
   if (!byIata || !byIata.length) return;
-  // % SLA por IATA ordenado de mayor a menor, con color semáforo
   const sorted = [...byIata]
     .filter(r => r.total > 0)
     .map(r => ({ ...r, pct: +((r.cumplido / r.total) * 100).toFixed(1) }))
@@ -1118,15 +1162,11 @@ function renderIataChart(byIata) {
         }
       },
       scales: {
-        x: {
-          min: 0, max: 100,
-          ticks: { color: C.muted, font: { size: 10 }, callback: v => v + '%' },
+        x: { min:0, max:100,
+          ticks: { color: C.muted, font:{ size:10 }, callback: v => v+'%' },
           grid: { color: C.grid }
         },
-        y: {
-          ticks: { color: C.muted, font: { size: 10, family: 'Space Mono' } },
-          grid: { display: false }
-        }
+        y: { ticks: { color: C.muted, font:{ size:10, family:'Space Mono' } }, grid:{ display:false } }
       }
     }
   });
@@ -1188,7 +1228,7 @@ function renderTable() {
     const barColor = pct >= 85 ? C.ok : pct >= 65 ? C.warn : C.fail;
     return `<tr>
       <td style="color:var(--accent)">${r.equipo || '—'}</td>
-      <td>${r.cliente || '—'}</td>
+      <td>${document.getElementById('selCliente').value || r.cliente || '—'}</td>
       <td style="color:var(--pend)">${r.nro_ap || '—'}</td>
       <td style="color:var(--accent);font-weight:600">${r.iata || '—'}</td>
       <td>${r.cp_destino || '—'}</td>
