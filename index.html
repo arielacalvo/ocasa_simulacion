@@ -9,23 +9,23 @@
     @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
     :root {
-      --bg:         #080B10;
-      --surface:    #0F1419;
-      --surface2:   #161D26;
-      --border:     #1E2A36;
+      --bg:         #F4F6F8;
+      --surface:    #FFFFFF;
+      --surface2:   #EEF2F6;
+      --border:     #DDE3EA;
       --accent:     #00B4D8;
-      --accent-dim: rgba(0,180,216,.12);
-      --ok:         #22D3A5;
-      --ok-dim:     rgba(34,211,165,.12);
-      --warn:       #F59E0B;
-      --warn-dim:   rgba(245,158,11,.12);
-      --fail:       #F43F5E;
-      --fail-dim:   rgba(244,63,94,.12);
-      --pend:       #818CF8;
-      --pend-dim:   rgba(129,140,248,.12);
-      --text:       #E2E8F0;
+      --accent-dim: rgba(0,180,216,.10);
+      --ok:         #17A981;
+      --ok-dim:     rgba(23,169,129,.10);
+      --warn:       #C9820A;
+      --warn-dim:   rgba(201,130,10,.10);
+      --fail:       #E11D48;
+      --fail-dim:   rgba(225,29,72,.10);
+      --pend:       #6366F1;
+      --pend-dim:   rgba(99,102,241,.10);
+      --text:       #0F172A;
       --muted:      #64748B;
-      --grid:       #1E2A36;
+      --grid:       #E2E8F0;
     }
 
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -190,7 +190,7 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       border-radius: 6px;
-      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      box-shadow: 0 8px 32px rgba(15,23,42,.14);
       z-index: 300;
       display: none;
       max-height: 240px;
@@ -463,7 +463,7 @@
       white-space: nowrap;
     }
     tbody tr:last-child td { border-bottom: none; }
-    tbody tr:hover td { background: rgba(255,255,255,.018); }
+    tbody tr:hover td { background: rgba(15,23,42,.03); }
 
     .badge-pill {
       display: inline-flex; align-items: center; gap: 5px;
@@ -490,7 +490,7 @@
       border-radius: 8px; padding: 12px 18px;
       font-family: 'Space Mono', monospace; font-size: 12px;
       color: var(--text);
-      box-shadow: 0 8px 32px rgba(0,0,0,.5);
+      box-shadow: 0 8px 32px rgba(15,23,42,.14);
       display: flex; align-items: center; gap: 10px;
       transform: translateY(80px); opacity: 0;
       transition: transform .3s, opacity .3s;
@@ -1039,7 +1039,7 @@ function renderDashboard() {
 // ═══════════════════════════════════════════════════════════
 //  CHARTS
 // ═══════════════════════════════════════════════════════════
-const C = { ok:'#22D3A5', pend:'#818CF8', warn:'#F59E0B', fail:'#F43F5E', accent:'#00B4D8', grid:'#1E2A36', muted:'#64748B' };
+const C = { ok:'#17A981', pend:'#6366F1', warn:'#C9820A', fail:'#E11D48', accent:'#00B4D8', grid:'#E2E8F0', muted:'#64748B' };
 const chartDefaults = {
   responsive: true, maintainAspectRatio: false,
   plugins: { legend: { labels: { color: C.muted, font: { size: 11, family: 'Space Mono' } } } }
@@ -1112,7 +1112,7 @@ function renderTrend(_ignored) {
           label: 'Target 97%',
           data: Array(labels.length).fill(97),
           type: 'line',
-          borderColor: 'rgba(255,255,255,0.3)',
+          borderColor: 'rgba(15,23,42,0.35)',
           borderDash: [5,4],
           borderWidth: 1.5,
           pointRadius: 0,
