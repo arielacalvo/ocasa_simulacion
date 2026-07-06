@@ -1149,7 +1149,7 @@ function renderTable() {
     const barColor = pct >= 85 ? C.ok : pct >= 65 ? C.warn : C.fail;
     return `<tr>
       <td style="color:var(--accent)">${r.equipo || '—'}</td>
-      <td>${document.getElementById('selCliente').value || r.cliente || '—'}</td>
+      <td>${r.cliente || '—'}</td>
       <td style="color:var(--pend)">${r.nro_ap || '—'}</td>
       <td>${r.cp_destino || '—'}</td>
       <td>${r.fecha_imp || '—'}</td>
