@@ -1049,7 +1049,7 @@ function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts
 
 function renderGauge(pct) {
   destroyChart('gauge');
-  const color = pct >= 85 ? C.ok : pct >= 65 ? C.warn : C.fail;
+  const color = pct >= 97 ? C.ok : pct >= 65 ? C.warn : C.fail;
   charts['gauge'] = new Chart(document.getElementById('gaugeChart'), {
     type: 'doughnut',
     data: { datasets: [{ data: [pct, 100-pct], backgroundColor: [color, '#1E2A36'], borderWidth: 0, circumference: 270, rotation: 225 }] },
@@ -1092,7 +1092,7 @@ function renderTrend(_ignored) {
   const sorted  = Object.entries(tMap).sort(([a],[b]) => a.localeCompare(b)); // ordena cronológicamente (YYYY-MM-DD)
   const labels  = sorted.map(([f]) => f.slice(5));          // MM-DD
   const pcts    = sorted.map(([,v]) => v.total ? +((v.cumplido/v.total)*100).toFixed(1) : 0);
-  const colors  = pcts.map(p => p >= 85 ? C.ok : p >= 65 ? C.warn : C.fail);
+  const colors  = pcts.map(p => p >= 97 ? C.ok : p >= 65 ? C.warn : C.fail);
 
   charts['trend'] = new Chart(document.getElementById('trendChart'), {
     type: 'bar',
@@ -1108,9 +1108,9 @@ function renderTrend(_ignored) {
           order: 1
         },
         {
-          // Línea de referencia 85%
-          label: 'Meta 85%',
-          data: Array(labels.length).fill(85),
+          // Línea de referencia 97%
+          label: 'Target 97%',
+          data: Array(labels.length).fill(97),
           type: 'line',
           borderColor: 'rgba(255,255,255,0.3)',
           borderDash: [5,4],
@@ -1147,7 +1147,7 @@ function renderIataChart(byIata) {
   const labels  = sorted.map(r => r.iata);
   const pcts    = sorted.map(r => r.pct);
   const totales = sorted.map(r => r.total);
-  const colors  = pcts.map(p => p >= 85 ? C.ok : p >= 65 ? C.warn : C.fail);
+  const colors  = pcts.map(p => p >= 97 ? C.ok : p >= 65 ? C.warn : C.fail);
 
   charts['iata'] = new Chart(document.getElementById('iataChart'), {
     type: 'bar',
@@ -1242,7 +1242,7 @@ function renderTable() {
   document.getElementById('tblBody').innerHTML = rows.map(r => {
     const st = statusMap[r.estado] || { cls: 'badge-pend', lbl: r.estado };
     const pct = r.pct_sla || 0;
-    const barColor = pct >= 85 ? C.ok : pct >= 65 ? C.warn : C.fail;
+    const barColor = pct >= 97 ? C.ok : pct >= 65 ? C.warn : C.fail;
     return `<tr>
       <td style="color:var(--accent)">${r.equipo || '—'}</td>
       <td>${document.getElementById('selCliente').value || r.cliente || '—'}</td>
