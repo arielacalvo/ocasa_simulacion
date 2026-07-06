@@ -655,27 +655,22 @@
     </div>
 
     <!-- CHARTS -->
-    <div class="charts-row">
+    <!-- ROW 1: Trend full width -->
+    <div class="charts-row" style="grid-template-columns:1fr">
       <div class="card">
         <div class="card-head">
-          <div class="card-title">Evolución diaria SLA</div>
+          <div class="card-title">Evolución diaria SLA — por fecha de vencimiento</div>
           <div class="card-badge" id="trendBadge">30d</div>
         </div>
-        <div class="chart-box"><canvas id="trendChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title">Estado por AP</div>
-          <div class="card-badge">top 8</div>
-        </div>
-        <div class="chart-box"><canvas id="apChart"></canvas></div>
+        <div class="chart-box" style="height:220px"><canvas id="trendChart"></canvas></div>
       </div>
     </div>
 
+    <!-- ROW 2: % SLA por IATA + Motivo visita -->
     <div class="charts-row">
       <div class="card">
         <div class="card-head">
-          <div class="card-title">Apertura por IATA</div>
+          <div class="card-title">% SLA por IATA</div>
           <div class="card-badge">IATA</div>
         </div>
         <div class="chart-box"><canvas id="iataChart"></canvas></div>
@@ -687,12 +682,16 @@
         </div>
         <div class="chart-box"><canvas id="motivoChart"></canvas></div>
       </div>
+    </div>
+
+    <!-- ROW 3: Histograma -->
+    <div class="charts-row" style="grid-template-columns:1fr">
       <div class="card">
         <div class="card-head">
           <div class="card-title">Días hasta 1ª visita</div>
           <div class="card-badge">histograma</div>
         </div>
-        <div class="chart-box"><canvas id="histChart"></canvas></div>
+        <div class="chart-box" style="height:180px"><canvas id="histChart"></canvas></div>
       </div>
     </div>
 
@@ -1028,7 +1027,6 @@ function renderDashboard() {
 
   renderGauge(pct);
   renderTrend(resultData.trend || []);
-  renderAPChart(resultData.by_ap || []);
   renderIataChart(resultData.by_iata || []);
   renderMotivoChart(resultData.by_motivo || []);
   renderHistChart(resultData.histogram || []);
@@ -1063,16 +1061,36 @@ function renderGauge(pct) {
   });
 }
 
-function renderTrend(trend) {
+function renderTrend(_ignored) {
+  // Agrupa por FECHA DE VENCIMIENTO (fecha_vto) desde el array de equipos completo
   destroyChart('trend');
+  const equipos = resultData.equipos || [];
+  const tMap = {};
+  for (const eq of equipos) {
+    const fecha = (eq.fecha_vto && eq.fecha_vto !== '—') ? String(eq.fecha_vto).slice(0,10) : null;
+    if (!fecha || fecha.length < 10) continue;
+    if (!tMap[fecha]) tMap[fecha] = { cumplido:0, incumplido:0, pendiente:0, en_riesgo:0 };
+    if      (eq.estado === 'CUMPLIDO')   tMap[fecha].cumplido++;
+    else if (eq.estado === 'INCUMPLIDO') tMap[fecha].incumplido++;
+    else if (eq.estado === 'EN_RIESGO')  tMap[fecha].en_riesgo++;
+    else if (eq.estado === 'PENDIENTE')  tMap[fecha].pendiente++;
+  }
+  const sorted     = Object.entries(tMap).sort(([a],[b]) => a.localeCompare(b));
+  const labels     = sorted.map(([f]) => f.slice(5));
+  const cumplido   = sorted.map(([,v]) => v.cumplido);
+  const incumplido = sorted.map(([,v]) => v.incumplido);
+  const en_riesgo  = sorted.map(([,v]) => v.en_riesgo);
+  const pendiente  = sorted.map(([,v]) => v.pendiente);
+
   charts['trend'] = new Chart(document.getElementById('trendChart'), {
     type: 'line',
     data: {
-      labels: trend.map(r => r.fecha.slice(5)),
+      labels,
       datasets: [
-        { label: 'Cumplido', data: trend.map(r => r.cumplido), borderColor: C.ok,   backgroundColor: 'rgba(34,211,165,.07)',  borderWidth: 2, pointRadius: 2, fill: true, tension: .35 },
-        { label: 'Incumplido', data: trend.map(r => r.incumplido), borderColor: C.fail, backgroundColor: 'rgba(244,63,94,.06)', borderWidth: 2, pointRadius: 2, fill: true, tension: .35 },
-        { label: 'Pendiente', data: trend.map(r => r.pendiente), borderColor: C.pend, backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 1, borderDash: [4,3], fill: false, tension: .35 }
+        { label: 'Cumplido',   data: cumplido,   borderColor: C.ok,   backgroundColor: 'rgba(34,211,165,.07)', borderWidth: 2, pointRadius: 2, fill: true,  tension: .35 },
+        { label: 'Incumplido', data: incumplido, borderColor: C.fail, backgroundColor: 'rgba(244,63,94,.06)',  borderWidth: 2, pointRadius: 2, fill: true,  tension: .35 },
+        { label: 'En riesgo',  data: en_riesgo,  borderColor: C.warn, backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 1, borderDash: [4,3], fill: false, tension: .35 },
+        { label: 'Pendiente',  data: pendiente,  borderColor: C.pend, backgroundColor: 'transparent', borderWidth: 1.5, pointRadius: 1, borderDash: [4,3], fill: false, tension: .35 }
       ]
     },
     options: { ...chartDefaults, scales: {
@@ -1082,57 +1100,58 @@ function renderTrend(trend) {
   });
 }
 
-function renderAPChart(byAP) {
-  destroyChart('ap');
-  const sorted = [...byAP].sort((a,b) => b.total - a.total).slice(0, 8);
-  charts['ap'] = new Chart(document.getElementById('apChart'), {
-    type: 'bar',
-    data: {
-      labels: sorted.map(r => r.nro_ap),
-      datasets: [
-        { label: 'Cumplido',   data: sorted.map(r => r.cumplido),   backgroundColor: C.ok,   borderRadius: 3, borderSkipped: false },
-        { label: 'Pendiente',  data: sorted.map(r => r.pendiente),  backgroundColor: C.pend, borderRadius: 3, borderSkipped: false },
-        { label: 'Incumplido', data: sorted.map(r => r.incumplido), backgroundColor: C.fail, borderRadius: 3, borderSkipped: false }
-      ]
-    },
-    options: { ...chartDefaults, scales: {
-      x: { stacked: true, ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } },
-      y: { stacked: true, ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } }
-    }}
-  });
-}
-
 function renderIataChart(byIata) {
   destroyChart('iata');
-  const sorted = [...byIata].sort((a,b) => b.total - a.total).slice(0, 12);
+  if (!byIata || !byIata.length) return;
+  // Calcular % SLA por IATA y ordenar de mayor a menor
+  const sorted = [...byIata]
+    .filter(r => r.total > 0)
+    .map(r => ({ ...r, pct: +((r.cumplido / r.total) * 100).toFixed(1) }))
+    .sort((a, b) => b.pct - a.pct);
+
+  const labels  = sorted.map(r => r.iata);
+  const pcts    = sorted.map(r => r.pct);
+  const totales = sorted.map(r => r.total);
+  const colors  = pcts.map(p => p >= 85 ? C.ok : p >= 65 ? C.warn : C.fail);
+
   charts['iata'] = new Chart(document.getElementById('iataChart'), {
     type: 'bar',
     data: {
-      labels: sorted.map(r => r.iata),
-      datasets: [
-        { label: 'Cumplido',   data: sorted.map(r => r.cumplido),   backgroundColor: C.ok,   borderRadius: 3, borderSkipped: false },
-        { label: 'Pendiente',  data: sorted.map(r => r.pendiente),  backgroundColor: C.pend, borderRadius: 3, borderSkipped: false },
-        { label: 'En riesgo',  data: sorted.map(r => r.en_riesgo),  backgroundColor: C.warn, borderRadius: 3, borderSkipped: false },
-        { label: 'Incumplido', data: sorted.map(r => r.incumplido), backgroundColor: C.fail, borderRadius: 3, borderSkipped: false }
-      ]
+      labels,
+      datasets: [{
+        label: '% SLA',
+        data: pcts,
+        backgroundColor: colors,
+        borderRadius: 4,
+        borderSkipped: false
+      }]
     },
-    options: { ...chartDefaults,
-      scales: {
-        x: { stacked: true, ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } },
-        y: { stacked: true, ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } }
-      },
+    options: {
+      ...chartDefaults,
+      indexAxis: 'y',
       plugins: {
-        ...chartDefaults.plugins,
-        legend: { position: 'bottom', labels: { color: C.muted, font: { size: 10, family: 'Space Mono' }, boxWidth: 10, padding: 10 } },
+        legend: { display: false },
         tooltip: {
           callbacks: {
-            afterBody: (items) => {
-              const idx = items[0].dataIndex;
-              const row = sorted[idx];
-              const pct = row.total ? ((row.cumplido / row.total) * 100).toFixed(1) : 0;
-              return [`SLA: ${pct}%  |  Total: ${row.total}`];
+            label: (ctx) => {
+              const i = ctx.dataIndex;
+              return [
+                ` SLA: ${pcts[i]}%`,
+                ` Total: ${totales[i]}  |  Cumplido: ${sorted[i].cumplido}  |  Incumplido: ${sorted[i].incumplido}`
+              ];
             }
           }
+        }
+      },
+      scales: {
+        x: {
+          min: 0, max: 100,
+          ticks: { color: C.muted, font:{ size:10 }, callback: v => v+'%' },
+          grid: { color: C.grid }
+        },
+        y: {
+          ticks: { color: C.muted, font:{ size:10, family:'Space Mono' } },
+          grid: { display: false }
         }
       }
     }
@@ -1175,7 +1194,7 @@ function renderHistChart(histogram) {
 function renderTable() {
   const q = (document.getElementById('tblSearch')?.value || '').toLowerCase();
   let rows = tableRows.filter(r =>
-    !q || (r.equipo + r.cliente + r.nro_ap + (r.iata||'') + r.cp_destino + r.motivo_visita).toLowerCase().includes(q)
+    !q || (r.equipo + r.cliente + r.nro_ap + (r.iata||'') + r.cp_destino + (r.motivo_visita||'')).toLowerCase().includes(q)
   );
   rows = [...rows].sort((a, b) => {
     const va = a[sortKey] ?? '', vb = b[sortKey] ?? '';
