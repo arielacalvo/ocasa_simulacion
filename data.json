@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-06T20:07:32.527Z",
+  "updated_at": "2026-07-06T20:10:50.844Z",
   "params": {
     "cliente": "CAMARA DEL LIBRO",
     "aps": [
@@ -37,7 +37,7 @@
   ],
   "by_iata": [
     {
-      "iata": "TUC",
+      "iata": "VMA",
       "total": 241,
       "cumplido": 241,
       "incumplido": 0,
@@ -46,7 +46,7 @@
       "sin_canal": 0
     },
     {
-      "iata": "VMA",
+      "iata": "TUC",
       "total": 241,
       "cumplido": 241,
       "incumplido": 0,
@@ -75,20 +75,6 @@
   ],
   "equipos": [
     {
-      "equipo": "1243295269",
-      "cliente": "CASASSA Y LORENZO LIBREROS S.A",
-      "nro_ap": "40043006",
-      "cp_destino": "4000",
-      "fecha_imp": "2026-06-30",
-      "fecha_vto": "2026-07-07",
-      "fecha_visita": "2026-07-02",
-      "motivo_visita": "Entregado",
-      "iata": "TUC",
-      "dias_sla": 5,
-      "estado": "CUMPLIDO",
-      "pct_sla": 71
-    },
-    {
       "equipo": "1243297611",
       "cliente": "CASASSA Y LORENZO LIBREROS S.A",
       "nro_ap": "40043006",
@@ -101,6 +87,20 @@
       "dias_sla": 4,
       "estado": "CUMPLIDO",
       "pct_sla": 67
+    },
+    {
+      "equipo": "1243295269",
+      "cliente": "CASASSA Y LORENZO LIBREROS S.A",
+      "nro_ap": "40043006",
+      "cp_destino": "4000",
+      "fecha_imp": "2026-06-30",
+      "fecha_vto": "2026-07-07",
+      "fecha_visita": "2026-07-02",
+      "motivo_visita": "Entregado",
+      "iata": "TUC",
+      "dias_sla": 5,
+      "estado": "CUMPLIDO",
+      "pct_sla": 71
     },
     {
       "equipo": "1243297611",
