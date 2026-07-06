@@ -655,8 +655,8 @@
     </div>
 
     <!-- CHARTS -->
-    <!-- Trend full width -->
-    <div class="charts-row" style="grid-template-columns:1fr">
+    <!-- Fila 1: Evolución diaria SLA + % SLA por IATA, 50/50 -->
+    <div class="charts-row" style="grid-template-columns:1fr 1fr">
       <div class="card">
         <div class="card-head">
           <div class="card-title">Evolución diaria SLA — % cumplimiento por fecha de vencimiento</div>
@@ -664,20 +664,17 @@
         </div>
         <div class="chart-box" style="height:220px"><canvas id="trendChart"></canvas></div>
       </div>
-    </div>
-    <!-- % SLA por IATA (reemplaza Estado por AP) -->
-    <div class="charts-row" style="grid-template-columns:1fr 1fr">
       <div class="card">
         <div class="card-head">
           <div class="card-title">% SLA por IATA</div>
           <div class="card-badge">IATA</div>
         </div>
-        <div class="chart-box"><canvas id="iataChart"></canvas></div>
+        <div class="chart-box" style="height:220px"><canvas id="iataChart"></canvas></div>
       </div>
+    </div>
 
-    <div class="charts-row">
-    </div><!-- /charts-row iata -->
-    <div class="charts-row">
+    <!-- Fila 2: Distribución motivo 1ª visita + Días hasta 1ª visita, 50/50 -->
+    <div class="charts-row" style="grid-template-columns:1fr 1fr">
       <div class="card">
         <div class="card-head">
           <div class="card-title">Distribución motivo 1ª visita</div>
