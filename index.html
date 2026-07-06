@@ -1244,8 +1244,8 @@ function filterTable() { renderTable(); }
 // ═══════════════════════════════════════════════════════════
 function exportCSV() {
   if (!tableRows.length) return;
-  const headers = ['Equipo','Cliente','Nro AP','CP Destino','F.Imposición','F.Vencimiento','F.1ª Visita','Motivo 1ª Visita','Días SLA','Estado'];
-  const rows = tableRows.map(r => [r.equipo,r.cliente,r.nro_ap,r.cp_destino,r.fecha_imp,r.fecha_vto,r.fecha_visita,r.motivo_visita,r.dias_sla,r.estado].map(v => `"${v||''}"`).join(','));
+  const headers = ['Equipo','Cliente','Nro AP','IATA','CP Destino','F.Imposición','F.Vencimiento','F.1ª Visita','Motivo 1ª Visita','Días SLA','Estado'];
+  const rows = tableRows.map(r => [r.equipo,r.cliente,r.nro_ap,r.iata,r.cp_destino,r.fecha_imp,r.fecha_vto,r.fecha_visita,r.motivo_visita,r.dias_sla,r.estado].map(v => `"${v||''}"`).join(','));
   const csv = [headers.join(','), ...rows].join('\n');
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
