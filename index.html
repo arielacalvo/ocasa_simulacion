@@ -655,23 +655,28 @@
     </div>
 
     <!-- CHARTS -->
-    <div class="charts-row">
+    <!-- Trend full width -->
+    <div class="charts-row" style="grid-template-columns:1fr">
       <div class="card">
         <div class="card-head">
           <div class="card-title">Evolución diaria SLA — % cumplimiento por fecha de vencimiento</div>
           <div class="card-badge" id="trendBadge">30d</div>
         </div>
-        <div class="chart-box"><canvas id="trendChart"></canvas></div>
-      </div>
-      <div class="card">
-        <div class="card-head">
-          <div class="card-title">Estado por AP</div>
-          <div class="card-badge">top 8</div>
-        </div>
-        <div class="chart-box"><canvas id="apChart"></canvas></div>
+        <div class="chart-box" style="height:220px"><canvas id="trendChart"></canvas></div>
       </div>
     </div>
+    <!-- % SLA por IATA (reemplaza Estado por AP) -->
+    <div class="charts-row" style="grid-template-columns:1fr 1fr">
+      <div class="card">
+        <div class="card-head">
+          <div class="card-title">% SLA por IATA</div>
+          <div class="card-badge">IATA</div>
+        </div>
+        <div class="chart-box"><canvas id="iataChart"></canvas></div>
+      </div>
 
+    <div class="charts-row">
+    </div><!-- /charts-row iata -->
     <div class="charts-row">
       <div class="card">
         <div class="card-head">
@@ -705,6 +710,7 @@
               <th onclick="sortTable('equipo')">Equipo ↕</th>
               <th onclick="sortTable('cliente')">Cliente ↕</th>
               <th onclick="sortTable('nro_ap')">Nro AP ↕</th>
+              <th onclick="sortTable('iata')">IATA ↕</th>
               <th onclick="sortTable('cp_destino')">CP ↕</th>
               <th onclick="sortTable('fecha_imp')">F. Imposición ↕</th>
               <th onclick="sortTable('fecha_vto')">F. Vencimiento ↕</th>
@@ -1020,7 +1026,7 @@ function renderDashboard() {
 
   renderGauge(pct);
   renderTrend(resultData.trend || []);
-  renderAPChart(resultData.by_ap || []);
+  renderIataChart(resultData.by_iata || []);
   renderMotivoChart(resultData.by_motivo || []);
   renderHistChart(resultData.histogram || []);
   tableRows = resultData.equipos || [];
@@ -1054,23 +1060,42 @@ function renderGauge(pct) {
   });
 }
 
+// Normaliza una fecha a 'YYYY-MM-DD'. Acepta ISO ('2026-07-06...') y
+// formato local es-AR ('D/M/YYYY' o 'DD/MM/YYYY'). Devuelve null si no es válida.
+function normalizeToISODate(value) {
+  if (!value || value === '—') return null;
+  const str = String(value).trim();
+
+  // Ya viene en ISO (YYYY-MM-DD[...])
+  const isoMatch = str.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (isoMatch) return `${isoMatch[1]}-${isoMatch[2]}-${isoMatch[3]}`;
+
+  // Formato local D/M/YYYY o DD/MM/YYYY
+  const localMatch = str.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (localMatch) {
+    const [, d, m, y] = localMatch;
+    return `${y}-${m.padStart(2,'0')}-${d.padStart(2,'0')}`;
+  }
+
+  return null;
+}
+
 function renderTrend(_ignored) {
-  // Recalcula desde equipos agrupando por FECHA DE VENCIMIENTO (fecha_vto)
-  // y muestra el % de SLA (cumplido / total con vto en ese día)
+  // Agrupa por FECHA DE VENCIMIENTO (NUNCA por fecha de imposición) y calcula % SLA diario
   destroyChart('trend');
   const equipos = resultData.equipos || [];
   const tMap = {};
   for (const eq of equipos) {
-    const fecha = (eq.fecha_vto && eq.fecha_vto !== '—') ? String(eq.fecha_vto).slice(0, 10) : null;
-    if (!fecha || fecha.length < 10) continue;
-    if (!tMap[fecha]) tMap[fecha] = { total: 0, cumplido: 0 };
+    const fecha = normalizeToISODate(eq.fecha_vto); // <- siempre fecha de vencimiento
+    if (!fecha) continue;
+    if (!tMap[fecha]) tMap[fecha] = { total:0, cumplido:0 };
     tMap[fecha].total++;
     if (eq.estado === 'CUMPLIDO') tMap[fecha].cumplido++;
   }
-  const entries = Object.entries(tMap).sort(([a], [b]) => a.localeCompare(b));
-  const labels  = entries.map(([f]) => f.slice(5));   // MM-DD
-  const pcts    = entries.map(([, v]) => v.total ? +((v.cumplido / v.total) * 100).toFixed(1) : 0);
-  const bgColors = pcts.map(p => p >= 85 ? 'rgba(34,211,165,.75)' : p >= 65 ? 'rgba(245,158,11,.75)' : 'rgba(244,63,94,.75)');
+  const sorted  = Object.entries(tMap).sort(([a],[b]) => a.localeCompare(b)); // ordena cronológicamente (YYYY-MM-DD)
+  const labels  = sorted.map(([f]) => f.slice(5));          // MM-DD
+  const pcts    = sorted.map(([,v]) => v.total ? +((v.cumplido/v.total)*100).toFixed(1) : 0);
+  const colors  = pcts.map(p => p >= 85 ? C.ok : p >= 65 ? C.warn : C.fail);
 
   charts['trend'] = new Chart(document.getElementById('trendChart'), {
     type: 'bar',
@@ -1080,66 +1105,90 @@ function renderTrend(_ignored) {
         {
           label: '% SLA',
           data: pcts,
-          backgroundColor: bgColors,
+          backgroundColor: colors,
           borderRadius: 3,
           borderSkipped: false,
-          order: 2
+          order: 1
         },
         {
-          // Línea de meta
+          // Línea de referencia 85%
           label: 'Meta 85%',
           data: Array(labels.length).fill(85),
           type: 'line',
-          borderColor: 'rgba(255,255,255,0.35)',
-          borderDash: [5, 4],
+          borderColor: 'rgba(255,255,255,0.3)',
+          borderDash: [5,4],
           borderWidth: 1.5,
           pointRadius: 0,
           fill: false,
-          order: 1
+          order: 0
         }
-      ]
-    },
-    options: {
-      ...chartDefaults,
-      scales: {
-        x: { ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } },
-        y: {
-          min: 0, max: 100,
-          ticks: { color: C.muted, font: { size: 10 }, callback: v => v + '%' },
-          grid: { color: C.grid }
-        }
-      },
-      plugins: {
-        ...chartDefaults.plugins,
-        tooltip: {
-          callbacks: {
-            label: ctx => ctx.dataset.label === '% SLA'
-              ? ` SLA: ${ctx.parsed.y}%  (${entries[ctx.dataIndex][1].cumplido} de ${entries[ctx.dataIndex][1].total})`
-              : ` ${ctx.dataset.label}`
-          }
-        }
-      }
-    }
-  });
-}
-
-function renderAPChart(byAP) {
-  destroyChart('ap');
-  const sorted = [...byAP].sort((a,b) => b.total - a.total).slice(0, 8);
-  charts['ap'] = new Chart(document.getElementById('apChart'), {
-    type: 'bar',
-    data: {
-      labels: sorted.map(r => r.nro_ap),
-      datasets: [
-        { label: 'Cumplido',   data: sorted.map(r => r.cumplido),   backgroundColor: C.ok,   borderRadius: 3, borderSkipped: false },
-        { label: 'Pendiente',  data: sorted.map(r => r.pendiente),  backgroundColor: C.pend, borderRadius: 3, borderSkipped: false },
-        { label: 'Incumplido', data: sorted.map(r => r.incumplido), backgroundColor: C.fail, borderRadius: 3, borderSkipped: false }
       ]
     },
     options: { ...chartDefaults, scales: {
-      x: { stacked: true, ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } },
-      y: { stacked: true, ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } }
+      x: { ticks: { color: C.muted, font: { size: 10 } }, grid: { color: C.grid } },
+      y: {
+        min: 0, max: 100,
+        ticks: { color: C.muted, font: { size: 10 }, callback: v => v + '%' },
+        grid: { color: C.grid }
+      }
+    },
+    plugins: {
+      ...chartDefaults.plugins,
+      tooltip: { callbacks: { label: ctx => ` SLA: ${ctx.parsed.y}%` } }
     }}
+  });
+}
+
+function renderIataChart(byIata) {
+  destroyChart('iata');
+  if (!byIata || !byIata.length) return;
+  const sorted = [...byIata]
+    .filter(r => r.total > 0)
+    .map(r => ({ ...r, pct: +((r.cumplido / r.total) * 100).toFixed(1) }))
+    .sort((a, b) => b.pct - a.pct);
+
+  const labels  = sorted.map(r => r.iata);
+  const pcts    = sorted.map(r => r.pct);
+  const totales = sorted.map(r => r.total);
+  const colors  = pcts.map(p => p >= 85 ? C.ok : p >= 65 ? C.warn : C.fail);
+
+  charts['iata'] = new Chart(document.getElementById('iataChart'), {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: '% SLA',
+        data: pcts,
+        backgroundColor: colors,
+        borderRadius: 4,
+        borderSkipped: false
+      }]
+    },
+    options: {
+      ...chartDefaults,
+      indexAxis: 'y',
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: (ctx) => {
+              const i = ctx.dataIndex;
+              return [
+                ` SLA: ${pcts[i]}%`,
+                ` Total: ${totales[i]}  |  Cumplido: ${sorted[i].cumplido}  |  Incumplido: ${sorted[i].incumplido}`
+              ];
+            }
+          }
+        }
+      },
+      scales: {
+        x: { min:0, max:100,
+          ticks: { color: C.muted, font:{ size:10 }, callback: v => v+'%' },
+          grid: { color: C.grid }
+        },
+        y: { ticks: { color: C.muted, font:{ size:10, family:'Space Mono' } }, grid:{ display:false } }
+      }
+    }
   });
 }
 
@@ -1179,7 +1228,7 @@ function renderHistChart(histogram) {
 function renderTable() {
   const q = (document.getElementById('tblSearch')?.value || '').toLowerCase();
   let rows = tableRows.filter(r =>
-    !q || (r.equipo + r.cliente + r.nro_ap + r.cp_destino + r.motivo_visita).toLowerCase().includes(q)
+    !q || (r.equipo + r.cliente + r.nro_ap + (r.iata||'') + r.cp_destino + (r.motivo_visita||'')).toLowerCase().includes(q)
   );
   rows = [...rows].sort((a, b) => {
     const va = a[sortKey] ?? '', vb = b[sortKey] ?? '';
@@ -1199,8 +1248,9 @@ function renderTable() {
     const barColor = pct >= 85 ? C.ok : pct >= 65 ? C.warn : C.fail;
     return `<tr>
       <td style="color:var(--accent)">${r.equipo || '—'}</td>
-      <td>${r.cliente || '—'}</td>
+      <td>${document.getElementById('selCliente').value || r.cliente || '—'}</td>
       <td style="color:var(--pend)">${r.nro_ap || '—'}</td>
+      <td style="color:var(--accent);font-weight:600">${r.iata || '—'}</td>
       <td>${r.cp_destino || '—'}</td>
       <td>${r.fecha_imp || '—'}</td>
       <td style="color:var(--warn)">${r.fecha_vto || '—'}</td>
@@ -1214,7 +1264,7 @@ function renderTable() {
       </td>
       <td><span class="badge-pill ${st.cls}">${st.lbl}</span></td>
     </tr>`;
-  }).join('') || `<tr><td colspan="10" style="text-align:center;padding:30px;color:var(--muted)">Sin resultados para esta búsqueda.</td></tr>`;
+  }).join('') || `<tr><td colspan="11" style="text-align:center;padding:30px;color:var(--muted)">Sin resultados para esta búsqueda.</td></tr>`;
 }
 
 function sortTable(key) {
