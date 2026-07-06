@@ -1,57 +1,24 @@
 {
-  "updated_at": "2025-01-15T10:00:00.000Z",
+  "updated_at": "2026-07-06T14:05:19.764Z",
   "params": {
-    "cliente": "EMPRESA A",
-    "aps": ["40043569", "40043570"],
+    "cliente": "CAMARA DEL LIBRO",
+    "aps": [
+      "40043006"
+    ],
     "pk_tipo": "CP",
-    "dias_periodo": 30
+    "dias_periodo": 7
   },
   "summary": {
-    "total": 480,
-    "cumplido": 312,
-    "pendiente": 84,
-    "en_riesgo": 24,
-    "incumplido": 60,
-    "pct_sla": 65.0
+    "total": 0,
+    "cumplido": 0,
+    "pendiente": 0,
+    "en_riesgo": 0,
+    "incumplido": 0,
+    "pct_sla": 0
   },
-  "trend": [
-    {"fecha":"2025-01-01","cumplido":18,"incumplido":4,"pendiente":8,"en_riesgo":1},
-    {"fecha":"2025-01-02","cumplido":22,"incumplido":3,"pendiente":6,"en_riesgo":2},
-    {"fecha":"2025-01-03","cumplido":15,"incumplido":5,"pendiente":10,"en_riesgo":0},
-    {"fecha":"2025-01-04","cumplido":20,"incumplido":2,"pendiente":7,"en_riesgo":3},
-    {"fecha":"2025-01-05","cumplido":24,"incumplido":6,"pendiente":5,"en_riesgo":1},
-    {"fecha":"2025-01-06","cumplido":17,"incumplido":4,"pendiente":9,"en_riesgo":2},
-    {"fecha":"2025-01-07","cumplido":21,"incumplido":3,"pendiente":8,"en_riesgo":1}
-  ],
-  "by_ap": [
-    {"nro_ap":"40043569","total":260,"cumplido":170,"incumplido":35,"pendiente":45,"en_riesgo":10},
-    {"nro_ap":"40043570","total":220,"cumplido":142,"incumplido":25,"pendiente":39,"en_riesgo":14}
-  ],
-  "by_motivo": [
-    {"motivo":"No hay nadie en el domicilio","cantidad":82},
-    {"motivo":"Entregado","cantidad":210},
-    {"motivo":"Dirección incorrecta","cantidad":45},
-    {"motivo":"Cliente rechaza","cantidad":28},
-    {"motivo":"Acceso restringido","cantidad":18},
-    {"motivo":"Reprogramado","cantidad":35}
-  ],
-  "histogram": [
-    {"dias":1,"cantidad":12,"dentro_sla":true},
-    {"dias":2,"cantidad":28,"dentro_sla":true},
-    {"dias":3,"cantidad":65,"dentro_sla":true},
-    {"dias":4,"cantidad":80,"dentro_sla":true},
-    {"dias":5,"cantidad":72,"dentro_sla":true},
-    {"dias":6,"cantidad":58,"dentro_sla":true},
-    {"dias":7,"cantidad":45,"dentro_sla":true},
-    {"dias":8,"cantidad":32,"dentro_sla":false},
-    {"dias":10,"cantidad":24,"dentro_sla":false},
-    {"dias":12,"cantidad":18,"dentro_sla":false},
-    {"dias":15,"cantidad":12,"dentro_sla":false}
-  ],
-  "equipos": [
-    {"equipo":"EQ0000001","cliente":"EMPRESA A","nro_ap":"40043569","cp_destino":"1234","fecha_imp":"2025-01-01","fecha_vto":"2025-01-06","fecha_visita":"2025-01-04","motivo_visita":"Entregado","dias_sla":3,"estado":"CUMPLIDO","pct_sla":90},
-    {"equipo":"EQ0000002","cliente":"EMPRESA A","nro_ap":"40043569","cp_destino":"1234","fecha_imp":"2025-01-02","fecha_vto":"2025-01-07","fecha_visita":null,"motivo_visita":null,"dias_sla":3,"estado":"INCUMPLIDO","pct_sla":45},
-    {"equipo":"EQ0000003","cliente":"EMPRESA A","nro_ap":"40043570","cp_destino":"5678","fecha_imp":"2025-01-10","fecha_vto":"2025-01-17","fecha_visita":null,"motivo_visita":null,"dias_sla":5,"estado":"PENDIENTE","pct_sla":70},
-    {"equipo":"EQ0000004","cliente":"EMPRESA A","nro_ap":"40043570","cp_destino":"5678","fecha_imp":"2025-01-12","fecha_vto":"2025-01-15","fecha_visita":null,"motivo_visita":null,"dias_sla":3,"estado":"EN_RIESGO","pct_sla":55}
-  ]
+  "trend": [],
+  "by_ap": [],
+  "by_motivo": [],
+  "histogram": [],
+  "equipos": []
 }
