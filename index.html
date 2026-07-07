@@ -656,7 +656,7 @@
         <div class="kpi-sub">vence en ≤ 2 días hábiles</div>
       </div>
       <div class="kpi fail">
-        <div class="kpi-eyebrow">Delay</div>
+        <div class="kpi-eyebrow">Incumplido</div>
         <div class="kpi-number" id="kpiFail">—</div>
         <div class="kpi-sub">sin visita, venció el plazo</div>
       </div>
@@ -1207,7 +1207,7 @@ function renderIataChart(byIata) {
               const i = ctx.dataIndex;
               return [
                 ` SLA: ${pcts[i]}%`,
-                ` Total: ${totales[i]}  |  Cumplido: ${sorted[i].cumplido}  |  Delay: ${sorted[i].incumplido}`
+                ` Total: ${totales[i]}  |  Cumplido: ${sorted[i].cumplido}  |  Incumplido: ${sorted[i].incumplido}`
               ];
             }
           }
@@ -1271,7 +1271,7 @@ function renderTable() {
     'CUMPLIDO':   { cls: 'badge-ok',   lbl: 'Cumplido' },
     'PENDIENTE':  { cls: 'badge-pend', lbl: 'Pendiente' },
     'EN_RIESGO':  { cls: 'badge-pend', lbl: 'En riesgo' },
-    'INCUMPLIDO': { cls: 'badge-fail', lbl: 'Delay' }
+    'INCUMPLIDO': { cls: 'badge-fail', lbl: 'Incumplido' }
   };
 
   document.getElementById('tblBody').innerHTML = rows.map(r => {
@@ -1285,7 +1285,7 @@ function renderTable() {
       <td style="color:var(--accent);font-weight:600">${r.iata || '—'}</td>
       <td>${r.cp_destino || '—'}</td>
       <td>${r.fecha_imp || '—'}</td>
-      <td style="color:var(--warn)">${r.fecha_vto || '—'}</td>
+      <td style="color:#E31C25;font-weight:600">${r.fecha_vto || '—'}</td>
       <td>${r.fecha_visita || '—'}</td>
       <td style="color:var(--muted);max-width:180px;overflow:hidden;text-overflow:ellipsis">${r.motivo_visita || '—'}</td>
       <td>
