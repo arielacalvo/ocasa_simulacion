@@ -6,7 +6,7 @@
   <title>SLA Última Milla — Equipos</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
     :root {
       --bg:         #F4F6F8;
@@ -33,7 +33,7 @@
     body {
       background: var(--bg);
       color: var(--text);
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 14px;
       min-height: 100vh;
     }
@@ -66,7 +66,7 @@
       display: block;
     }
     .brand-name { font-size: 15px; font-weight: 600; letter-spacing: -.3px; }
-    .brand-sub  { font-size: 11px; color: var(--muted); font-family: 'Space Mono', monospace; margin-top: 1px; }
+    .brand-sub  { font-size: 11px; color: var(--muted); font-family: 'Inter', sans-serif; margin-top: 1px; }
 
     .header-meta {
       display: flex; align-items: center; gap: 18px;
@@ -75,10 +75,10 @@
       display: flex; align-items: center; gap: 7px;
       background: var(--surface2);
       border: 1px solid var(--border);
-      border-radius: 20px;
-      padding: 5px 12px;
-      font-family: 'Space Mono', monospace;
-      font-size: 11px; color: var(--muted);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11.5px; font-weight: 600; color: var(--muted);
     }
     .meta-chip .dot {
       width: 6px; height: 6px; border-radius: 50%;
@@ -95,15 +95,18 @@
     /* ══════════════ CONTROL PANEL ══════════════ */
     .control-panel {
       background: var(--surface);
-      border-bottom: 1px solid var(--border);
-      padding: 20px 32px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      box-shadow: 0 1px 3px rgba(15,23,42,.05);
+      margin: 20px 32px 0;
+      padding: 20px 24px;
     }
     .control-panel-title {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px;
+      font-family: 'Inter', sans-serif;
+      font-size: 11px; font-weight: 700;
       color: var(--muted);
       text-transform: uppercase;
-      letter-spacing: 2px;
+      letter-spacing: 1.4px;
       margin-bottom: 16px;
     }
     .controls-grid {
@@ -126,7 +129,7 @@
       color: var(--muted);
       text-transform: uppercase;
       letter-spacing: 1.2px;
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
     }
 
     select, .multiselect-box {
@@ -135,7 +138,7 @@
       color: var(--text);
       padding: 9px 12px;
       border-radius: 6px;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 13px;
       transition: border-color .15s, box-shadow .15s;
       width: 100%;
@@ -158,7 +161,7 @@
       color: var(--text);
       padding: 9px 32px 9px 12px;
       border-radius: 6px;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       font-size: 13px;
       cursor: pointer;
       transition: border-color .15s;
@@ -181,11 +184,11 @@
       border-radius: 4px;
       padding: 1px 7px;
       font-size: 11px;
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
       white-space: nowrap;
     }
     .ms-tag-more {
-      color: var(--muted); font-size: 11px; font-family: 'Space Mono', monospace;
+      color: var(--muted); font-size: 11px; font-family: 'Inter', sans-serif;
     }
 
     .multiselect-dropdown {
@@ -212,7 +215,7 @@
       padding: 5px 10px;
       border-radius: 4px;
       font-size: 12px;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
     }
     .ms-search input:focus { outline: none; border-color: var(--accent); }
     .ms-actions {
@@ -222,7 +225,7 @@
     .ms-action-btn {
       font-size: 11px; color: var(--accent);
       background: none; border: none; cursor: pointer; padding: 0;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
     }
     .ms-action-btn:hover { text-decoration: underline; }
     .ms-option {
@@ -248,9 +251,9 @@
       color: #fff;
       border: none;
       padding: 10px 24px;
-      border-radius: 6px;
-      font-family: 'Space Grotesk', sans-serif;
-      font-size: 13px; font-weight: 600;
+      border-radius: 999px;
+      font-family: 'Inter', sans-serif;
+      font-size: 13px; font-weight: 700;
       cursor: pointer;
       transition: opacity .15s, transform .1s, box-shadow .15s;
       white-space: nowrap;
@@ -279,7 +282,7 @@
       min-height: 36px;
     }
     .status-msg {
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 11px; color: var(--muted);
       display: flex; align-items: center; gap: 8px;
     }
@@ -287,7 +290,7 @@
     .status-msg.success { color: var(--ok); }
     .status-msg.error   { color: var(--fail); }
     .status-updated {
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 11px; color: var(--muted);
     }
     .status-updated span { color: var(--accent); }
@@ -325,12 +328,13 @@
       padding: 18px 20px;
       position: relative;
       overflow: hidden;
-      transition: border-color .2s;
+      box-shadow: 0 1px 3px rgba(15,23,42,.05);
+      transition: box-shadow .2s, transform .2s;
     }
-    .kpi:hover { border-color: var(--accent); }
+    .kpi:hover { box-shadow: 0 4px 14px rgba(15,23,42,.08); transform: translateY(-1px); }
     .kpi::after {
       content: '';
-      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      position: absolute; top: 0; left: 0; right: 0; height: 4px;
       border-radius: 10px 10px 0 0;
     }
     .kpi.total::after  { background: var(--accent); }
@@ -340,22 +344,28 @@
     .kpi.fail::after   { background: var(--fail); }
 
     .kpi-eyebrow {
-      font-family: 'Space Mono', monospace;
-      font-size: 9px; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 1.5px;
+      font-family: 'Inter', sans-serif;
+      font-size: 10.5px; font-weight: 700; color: var(--muted);
+      text-transform: uppercase; letter-spacing: 1px;
       margin-bottom: 10px;
     }
+    .kpi.total .kpi-eyebrow  { color: var(--accent); }
+    .kpi.ok    .kpi-eyebrow  { color: var(--ok); }
+    .kpi.pend  .kpi-eyebrow  { color: var(--pend); }
+    .kpi.warn-sla .kpi-eyebrow { color: var(--warn); }
+    .kpi.fail  .kpi-eyebrow  { color: var(--fail); }
     .kpi-number {
-      font-family: 'Space Mono', monospace;
-      font-size: 32px; font-weight: 700; line-height: 1;
+      font-family: 'Inter', sans-serif;
+      font-size: 32px; font-weight: 800; line-height: 1;
       margin-bottom: 6px;
+      letter-spacing: -.5px;
     }
     .kpi.total .kpi-number  { color: var(--accent); }
     .kpi.ok    .kpi-number  { color: var(--ok); }
     .kpi.pend  .kpi-number  { color: var(--pend); }
     .kpi.warn-sla .kpi-number { color: var(--warn); }
     .kpi.fail  .kpi-number  { color: var(--fail); }
-    .kpi-sub { font-size: 11px; color: var(--muted); }
+    .kpi-sub { font-size: 11px; color: var(--muted); font-weight: 500; }
 
     /* gauge ring */
     .gauge-kpi {
@@ -368,7 +378,7 @@
     .gauge-ring-center {
       position: absolute; inset: 0;
       display: flex; align-items: center; justify-content: center;
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
       font-size: 13px; font-weight: 700;
     }
 
@@ -383,21 +393,28 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       padding: 20px;
+      box-shadow: 0 1px 3px rgba(15,23,42,.05);
     }
     .card-head {
       display: flex; justify-content: space-between; align-items: flex-start;
       margin-bottom: 16px;
+      gap: 12px;
     }
     .card-title {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 1.5px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px; font-weight: 700; color: var(--text);
+      letter-spacing: -.1px;
+    }
+    .card-subtitle {
+      font-size: 11.5px; color: var(--muted);
+      margin-top: 2px; font-weight: 400;
     }
     .card-badge {
       background: var(--surface2); border: 1px solid var(--border);
-      border-radius: 20px; padding: 2px 9px;
-      font-size: 10px; color: var(--muted);
-      font-family: 'Space Mono', monospace;
+      border-radius: 999px; padding: 3px 11px;
+      font-size: 10.5px; font-weight: 600; color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap;
     }
     .chart-box { position: relative; height: 220px; }
 
@@ -407,26 +424,26 @@
       border: 1px solid var(--border);
       border-radius: 10px;
       overflow: hidden;
+      box-shadow: 0 1px 3px rgba(15,23,42,.05);
     }
     .table-head-bar {
       display: flex; align-items: center; justify-content: space-between;
-      padding: 14px 18px; border-bottom: 1px solid var(--border);
+      padding: 16px 18px; border-bottom: 1px solid var(--border);
       flex-wrap: wrap; gap: 10px;
     }
     .table-head-title {
-      font-family: 'Space Mono', monospace;
-      font-size: 10px; color: var(--muted);
-      text-transform: uppercase; letter-spacing: 1.5px;
+      font-family: 'Inter', sans-serif;
+      font-size: 14.5px; font-weight: 700; color: var(--text);
     }
     .table-controls { display: flex; gap: 8px; align-items: center; }
     .tbl-search {
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--text);
-      padding: 5px 12px;
-      border-radius: 5px;
+      padding: 6px 14px;
+      border-radius: 999px;
       font-size: 12px;
-      font-family: 'Space Grotesk', sans-serif;
+      font-family: 'Inter', sans-serif;
       width: 220px;
     }
     .tbl-search::placeholder { color: var(--muted); }
@@ -435,10 +452,10 @@
       background: var(--surface2);
       border: 1px solid var(--border);
       color: var(--muted);
-      padding: 5px 12px;
-      border-radius: 5px;
-      font-size: 11px;
-      font-family: 'Space Mono', monospace;
+      padding: 6px 14px;
+      border-radius: 999px;
+      font-size: 11.5px; font-weight: 600;
+      font-family: 'Inter', sans-serif;
       cursor: pointer;
       transition: color .15s, border-color .15s;
     }
@@ -452,7 +469,7 @@
       text-align: left; padding: 9px 14px;
       font-size: 10px; color: var(--muted);
       text-transform: uppercase; letter-spacing: 1px;
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
       border-bottom: 1px solid var(--border);
       white-space: nowrap; cursor: pointer;
       user-select: none;
@@ -462,7 +479,7 @@
       padding: 9px 14px;
       border-bottom: 1px solid var(--border);
       font-size: 12px;
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
       white-space: nowrap;
     }
     tbody tr:last-child td { border-bottom: none; }
@@ -472,7 +489,7 @@
       display: inline-flex; align-items: center; gap: 5px;
       padding: 2px 10px; border-radius: 20px;
       font-size: 10px; font-weight: 600;
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
     }
     .badge-pill::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
     .badge-ok   { background: var(--ok-dim);   color: var(--ok);   border: 1px solid rgba(34,211,165,.2); }
@@ -491,7 +508,7 @@
       position: fixed; bottom: 24px; right: 24px;
       background: var(--surface2); border: 1px solid var(--border);
       border-radius: 8px; padding: 12px 18px;
-      font-family: 'Space Mono', monospace; font-size: 12px;
+      font-family: 'Inter', sans-serif; font-size: 12px;
       color: var(--text);
       box-shadow: 0 8px 32px rgba(15,23,42,.14);
       display: flex; align-items: center; gap: 10px;
@@ -506,7 +523,7 @@
     footer {
       text-align: center; padding: 16px;
       color: var(--muted); font-size: 11px;
-      font-family: 'Space Mono', monospace;
+      font-family: 'Inter', sans-serif;
       border-top: 1px solid var(--border);
     }
   </style>
@@ -662,14 +679,20 @@
     <div class="charts-row" style="grid-template-columns:1fr 1fr">
       <div class="card">
         <div class="card-head">
-          <div class="card-title">Evolución diaria SLA — % cumplimiento por fecha de vencimiento</div>
+          <div>
+            <div class="card-title">Evolución diaria SLA</div>
+            <div class="card-subtitle">Porcentaje de cumplimiento diario del SLA por fecha de vencimiento</div>
+          </div>
           <div class="card-badge" id="trendBadge">30d</div>
         </div>
         <div class="chart-box" style="height:220px"><canvas id="trendChart"></canvas></div>
       </div>
       <div class="card">
         <div class="card-head">
-          <div class="card-title">% SLA por IATA</div>
+          <div>
+            <div class="card-title">% SLA por IATA</div>
+            <div class="card-subtitle">Cumplimiento acumulado por código IATA</div>
+          </div>
           <div class="card-badge">IATA</div>
         </div>
         <div class="chart-box" style="height:220px"><canvas id="iataChart"></canvas></div>
@@ -680,14 +703,20 @@
     <div class="charts-row" style="grid-template-columns:1fr 1fr">
       <div class="card">
         <div class="card-head">
-          <div class="card-title">Distribución motivo 1ª visita</div>
+          <div>
+            <div class="card-title">Distribución motivo 1ª visita</div>
+            <div class="card-subtitle">Principales causas registradas en la primera visita</div>
+          </div>
           <div class="card-badge">causas</div>
         </div>
         <div class="chart-box"><canvas id="motivoChart"></canvas></div>
       </div>
       <div class="card">
         <div class="card-head">
-          <div class="card-title">Días hasta 1ª visita</div>
+          <div>
+            <div class="card-title">Días hasta 1ª visita</div>
+            <div class="card-subtitle">Distribución de tiempos de respuesta</div>
+          </div>
           <div class="card-badge">histograma</div>
         </div>
         <div class="chart-box"><canvas id="histChart"></canvas></div>
@@ -697,7 +726,10 @@
     <!-- TABLE -->
     <div class="table-card">
       <div class="table-head-bar">
-        <div class="table-head-title">Detalle de equipos</div>
+        <div>
+          <div class="table-head-title">Detalle de equipos</div>
+          <div class="card-subtitle">Listado completo con estado individual de SLA</div>
+        </div>
         <div class="table-controls">
           <input class="tbl-search" id="tblSearch" placeholder="Buscar equipo, cliente, CP…" oninput="filterTable()"/>
           <button class="tbl-export" onclick="exportCSV()">↓ CSV</button>
@@ -1045,7 +1077,7 @@ function renderDashboard() {
 const C = { ok:'#17A981', pend:'#6366F1', warn:'#C9820A', fail:'#E11D48', accent:'#00B4D8', grid:'#E2E8F0', muted:'#64748B' };
 const chartDefaults = {
   responsive: true, maintainAspectRatio: false,
-  plugins: { legend: { labels: { color: C.muted, font: { size: 11, family: 'Space Mono' } } } }
+  plugins: { legend: { labels: { color: C.muted, font: { size: 11, family: 'Inter' } } } }
 };
 
 function destroyChart(id) { if(charts[id]) { charts[id].destroy(); delete charts[id]; } }
@@ -1186,7 +1218,7 @@ function renderIataChart(byIata) {
           ticks: { color: C.muted, font:{ size:10 }, callback: v => v+'%' },
           grid: { color: C.grid }
         },
-        y: { ticks: { color: C.muted, font:{ size:10, family:'Space Mono' } }, grid:{ display:false } }
+        y: { ticks: { color: C.muted, font:{ size:10, family:'Inter' } }, grid:{ display:false } }
       }
     }
   });
@@ -1201,7 +1233,7 @@ function renderMotivoChart(byMotivo) {
       labels: byMotivo.map(r => r.motivo),
       datasets: [{ data: byMotivo.map(r => r.cantidad), backgroundColor: palette.slice(0, byMotivo.length), borderWidth: 0, hoverOffset: 6 }]
     },
-    options: { ...chartDefaults, cutout: '60%', plugins: { legend: { position: 'right', labels: { color: C.muted, font: { size: 11, family: 'Space Mono' }, boxWidth: 10, padding: 12 } } } }
+    options: { ...chartDefaults, cutout: '60%', plugins: { legend: { position: 'right', labels: { color: C.muted, font: { size: 11, family: 'Inter' }, boxWidth: 10, padding: 12 } } } }
   });
 }
 
