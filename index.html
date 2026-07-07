@@ -1127,7 +1127,7 @@ function renderTrend(_ignored) {
   const sorted  = Object.entries(tMap).sort(([a],[b]) => a.localeCompare(b)); // ordena cronológicamente (YYYY-MM-DD)
   const labels  = sorted.map(([f]) => f.slice(5));          // MM-DD
   const pcts    = sorted.map(([,v]) => v.total ? +((v.cumplido/v.total)*100).toFixed(1) : 0);
-  const colors  = pcts.map(p => p >= 97 ? C.ok : p >= 65 ? C.warn : C.fail);
+  const colors  = pcts.map(p => p >= 97 ? 'rgba(0,155,168,.75)' : p >= 65 ? 'rgba(201,130,10,.75)' : 'rgba(225,29,72,.75)');
 
   charts['trend'] = new Chart(document.getElementById('trendChart'), {
     type: 'bar',
@@ -1182,7 +1182,7 @@ function renderIataChart(byIata) {
   const labels  = sorted.map(r => r.iata);
   const pcts    = sorted.map(r => r.pct);
   const totales = sorted.map(r => r.total);
-  const colors  = pcts.map(p => p >= 97 ? C.ok : p >= 65 ? C.warn : C.fail);
+  const colors  = pcts.map(p => p >= 97 ? 'rgba(0,155,168,.75)' : p >= 65 ? 'rgba(201,130,10,.75)' : 'rgba(225,29,72,.75)');
 
   charts['iata'] = new Chart(document.getElementById('iataChart'), {
     type: 'bar',
