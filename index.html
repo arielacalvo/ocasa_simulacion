@@ -496,8 +496,6 @@
     .badge-ok::before   { background: var(--ok); }
     .badge-pend { background: var(--pend-dim); color: var(--pend); border: 1px solid rgba(129,140,248,.2); }
     .badge-pend::before { background: var(--pend); }
-    .badge-pend-green { background: rgba(52,211,153,.12); color: #2a9d7c; border: 1px solid rgba(52,211,153,.25); }
-    .badge-pend-green::before { background: #2a9d7c; }
     .badge-fail { background: var(--fail-dim); color: var(--fail); border: 1px solid rgba(244,63,94,.2); }
     .badge-fail::before { background: var(--fail); }
 
@@ -1220,41 +1218,20 @@ function renderIataChart(byIata) {
           ticks: { color: C.muted, font:{ size:10 }, callback: v => v+'%' },
           grid: { color: C.grid }
         },
-        y: {
-          ticks: {
-            color: C.muted,
-            font:{ size:10, family:'Inter' },
-            autoSkip: false      // mostrar TODOS los labels sin omitir
-          },
-          grid:{ display:false }
-        }
+        y: { ticks: { color: C.muted, font:{ size:10, family:'Inter' } }, grid:{ display:false } }
       }
     }
   });
-  // Ajustar alto del canvas según cantidad de IATAs (min 30px por barra)
-  const iataCanvas = document.getElementById('iataChart');
-  const minH = Math.max(220, sorted.length * 32);
-  iataCanvas.parentElement.style.height = minH + 'px';
 }
 
 function renderMotivoChart(byMotivo) {
   destroyChart('motivo');
-  // Paleta pastel con transparencia .75 (igual que histograma)
-  const pastel = [
-    'rgba(0,155,168,.75)',      // turquesa (igual que histograma dentro_sla)
-    'rgba(99,102,241,.75)',     // violeta pastel
-    'rgba(251,191,36,.75)',     // amarillo pastel
-    'rgba(251,146,60,.75)',     // naranja pastel
-    'rgba(167,139,250,.75)',    // lavanda pastel
-    'rgba(52,211,153,.75)',     // verde menta pastel
-    'rgba(251,113,133,.75)',    // rosa pastel  ← "no responde al llamado"
-    'rgba(148,163,184,.75)',    // gris azulado pastel
-  ];
+  const palette = [C.ok, C.pend, C.warn, C.fail, C.accent, '#EC4899', '#14B8A6', '#F97316'];
   charts['motivo'] = new Chart(document.getElementById('motivoChart'), {
     type: 'doughnut',
     data: {
       labels: byMotivo.map(r => r.motivo),
-      datasets: [{ data: byMotivo.map(r => r.cantidad), backgroundColor: pastel.slice(0, byMotivo.length), borderWidth: 0, hoverOffset: 6 }]
+      datasets: [{ data: byMotivo.map(r => r.cantidad), backgroundColor: palette.slice(0, byMotivo.length), borderWidth: 0, hoverOffset: 6 }]
     },
     options: { ...chartDefaults, cutout: '60%', plugins: { legend: { position: 'right', labels: { color: C.muted, font: { size: 11, family: 'Inter' }, boxWidth: 10, padding: 12 } } } }
   });
@@ -1292,19 +1269,19 @@ function renderTable() {
 
   const statusMap = {
     'CUMPLIDO':   { cls: 'badge-ok',   lbl: 'On-time' },
-    'PENDIENTE':  { cls: 'badge-pend-green', lbl: 'Pendiente' },
-    'EN_RIESGO':  { cls: 'badge-pend-green', lbl: 'En riesgo' },
+    'PENDIENTE':  { cls: 'badge-pend', lbl: 'Pendiente' },
+    'EN_RIESGO':  { cls: 'badge-pend', lbl: 'En riesgo' },
     'INCUMPLIDO': { cls: 'badge-fail', lbl: 'Delay' }
   };
 
   document.getElementById('tblBody').innerHTML = rows.map(r => {
-    const st = statusMap[r.estado] || { cls: 'badge-pend-green', lbl: r.estado };
+    const st = statusMap[r.estado] || { cls: 'badge-pend', lbl: r.estado };
     const pct = r.pct_sla || 0;
     const barColor = pct >= 97 ? C.ok : pct >= 65 ? C.warn : C.fail;
     return `<tr>
       <td style="color:var(--accent)">${r.equipo || '—'}</td>
       <td>${document.getElementById('selCliente').value || r.cliente || '—'}</td>
-      <td style="color:var(--accent)">${r.nro_ap || '—'}</td>
+      <td style="color:var(--pend)">${r.nro_ap || '—'}</td>
       <td style="color:var(--accent);font-weight:600">${r.iata || '—'}</td>
       <td>${r.cp_destino || '—'}</td>
       <td>${r.fecha_imp || '—'}</td>
