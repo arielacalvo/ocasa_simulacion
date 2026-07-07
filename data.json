@@ -1,5 +1,5 @@
 {
-  "updated_at": "2026-07-07T19:15:30.243Z",
+  "updated_at": "2026-07-07T19:18:50.978Z",
   "params": {
     "cliente": "CAMARA DEL LIBRO",
     "aps": [
@@ -93,18 +93,18 @@
   ],
   "equipos": [
     {
-      "equipo": "1243399484",
+      "equipo": "1243399482",
       "cliente": "BANFI LORENA FABIOLA",
       "nro_ap": "40042907",
-      "cp_destino": "5506",
+      "cp_destino": "5000",
       "fecha_imp": "2026-07-01",
-      "fecha_vto": "2026-07-10",
-      "fecha_visita": null,
-      "motivo_visita": null,
-      "iata": "MDZ",
-      "dias_sla": 6,
-      "estado": "EN_RIESGO",
-      "pct_sla": 75
+      "fecha_vto": "2026-07-07",
+      "fecha_visita": "2026-07-02",
+      "motivo_visita": "Entregado",
+      "iata": "COR",
+      "dias_sla": 4,
+      "estado": "CUMPLIDO",
+      "pct_sla": 67
     },
     {
       "equipo": "1243399485",
@@ -121,18 +121,18 @@
       "pct_sla": 67
     },
     {
-      "equipo": "1243399482",
+      "equipo": "1243399484",
       "cliente": "BANFI LORENA FABIOLA",
       "nro_ap": "40042907",
-      "cp_destino": "5000",
+      "cp_destino": "5506",
       "fecha_imp": "2026-07-01",
-      "fecha_vto": "2026-07-07",
-      "fecha_visita": "2026-07-02",
-      "motivo_visita": "Entregado",
-      "iata": "COR",
-      "dias_sla": 4,
-      "estado": "CUMPLIDO",
-      "pct_sla": 67
+      "fecha_vto": "2026-07-10",
+      "fecha_visita": null,
+      "motivo_visita": null,
+      "iata": "MDZ",
+      "dias_sla": 6,
+      "estado": "EN_RIESGO",
+      "pct_sla": 75
     },
     {
       "equipo": "1242898708",
