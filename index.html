@@ -1198,7 +1198,6 @@ function renderIataChart(byIata) {
     },
     options: {
       ...chartDefaults,
-      indexAxis: 'y',
       plugins: {
         legend: { display: false },
         tooltip: {
@@ -1214,14 +1213,20 @@ function renderIataChart(byIata) {
         }
       },
       scales: {
-        x: { min:0, max:100,
-          ticks: { color: C.muted, font:{ size:10 }, callback: v => v+'%' },
-          grid: { color: C.grid }
+        x: {
+          ticks: { color: C.muted, font: { size: 10, family: 'Inter' }, autoSkip: false, maxRotation: 45, minRotation: 30 },
+          grid: { display: false }
         },
-        y: { ticks: { color: C.muted, font:{ size:10, family:'Inter' } }, grid:{ display:false } }
+        y: {
+          min: 0, max: 100,
+          ticks: { color: C.muted, font: { size: 10 }, callback: v => v + '%' },
+          grid: { color: C.grid }
+        }
       }
     }
   });
+  // Altura fija para barras verticales
+  document.getElementById('iataChart').parentElement.style.height = '280px';
 }
 
 function renderMotivoChart(byMotivo) {
