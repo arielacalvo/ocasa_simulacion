@@ -1258,7 +1258,7 @@ function renderHistChart(histogram) {
     data: {
       labels: histogram.map(r => r.dias + 'd'),
       datasets: [{ label: 'Equipos', data: histogram.map(r => r.cantidad),
-        backgroundColor: histogram.map(r => r.dentro_sla ? 'rgba(0,155,168,.75)' : 'rgba(244,63,94,.7)'),
+        backgroundColor: 'rgba(0,155,168,.75)',
         borderRadius: 3 }]
     },
     options: { ...chartDefaults, plugins: { legend: { display: false } }, scales: {
