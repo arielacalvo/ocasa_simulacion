@@ -1,10 +1,11 @@
 {
-  "updated_at": "2026-07-07T20:42:30.331Z",
+  "updated_at": "2026-07-07T20:55:41.902Z",
   "params": {
     "cliente": "CAMARA DEL LIBRO",
     "aps": [
       "40042907",
-      "40043006"
+      "40043006",
+      "40043307"
     ],
     "pk_tipo": "CP",
     "dias_periodo": 60
@@ -494,6 +495,34 @@
       "pct_sla": 71
     },
     {
+      "equipo": "1242362939",
+      "cliente": "CASASSA Y LORENZO LIBREROS S.A",
+      "nro_ap": "40043006",
+      "cp_destino": "7600",
+      "fecha_imp": "2026-06-18",
+      "fecha_vto": "2026-06-24",
+      "fecha_visita": "2026-06-19",
+      "motivo_visita": "Entregado",
+      "iata": "MDQ",
+      "dias_sla": 4,
+      "estado": "CUMPLIDO",
+      "pct_sla": 67
+    },
+    {
+      "equipo": "1242362931",
+      "cliente": "CASASSA Y LORENZO LIBREROS S.A",
+      "nro_ap": "40043006",
+      "cp_destino": "6300",
+      "fecha_imp": "2026-06-18",
+      "fecha_vto": "2026-06-24",
+      "fecha_visita": "2026-06-19",
+      "motivo_visita": "Entregado",
+      "iata": "RSA",
+      "dias_sla": 4,
+      "estado": "CUMPLIDO",
+      "pct_sla": 67
+    },
+    {
       "equipo": "1242362936",
       "cliente": "CASASSA Y LORENZO LIBREROS S.A",
       "nro_ap": "40043006",
@@ -520,34 +549,6 @@
       "dias_sla": 6,
       "estado": "CUMPLIDO",
       "pct_sla": 75
-    },
-    {
-      "equipo": "1242362931",
-      "cliente": "CASASSA Y LORENZO LIBREROS S.A",
-      "nro_ap": "40043006",
-      "cp_destino": "6300",
-      "fecha_imp": "2026-06-18",
-      "fecha_vto": "2026-06-24",
-      "fecha_visita": "2026-06-19",
-      "motivo_visita": "Entregado",
-      "iata": "RSA",
-      "dias_sla": 4,
-      "estado": "CUMPLIDO",
-      "pct_sla": 67
-    },
-    {
-      "equipo": "1242362939",
-      "cliente": "CASASSA Y LORENZO LIBREROS S.A",
-      "nro_ap": "40043006",
-      "cp_destino": "7600",
-      "fecha_imp": "2026-06-18",
-      "fecha_vto": "2026-06-24",
-      "fecha_visita": "2026-06-19",
-      "motivo_visita": "Entregado",
-      "iata": "MDQ",
-      "dias_sla": 4,
-      "estado": "CUMPLIDO",
-      "pct_sla": 67
     },
     {
       "equipo": "1242276696",
