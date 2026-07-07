@@ -1231,7 +1231,16 @@ function renderIataChart(byIata) {
 
 function renderMotivoChart(byMotivo) {
   destroyChart('motivo');
-  const palette = [C.ok, C.pend, C.warn, C.fail, C.accent, '#EC4899', '#14B8A6', '#F97316'];
+  const palette = [
+    'rgba(0,155,168,.65)',      // turquesa pastel
+    'rgba(167,139,250,.65)',    // lavanda pastel
+    'rgba(251,191,36,.65)',     // amarillo pastel
+    'rgba(251,113,133,.65)',    // rosa pastel
+    'rgba(147,197,253,.65)',    // celeste pastel
+    'rgba(134,239,172,.65)',    // verde menta pastel
+    'rgba(253,164,175,.65)',    // salmon pastel
+    'rgba(196,181,253,.65)',    // violeta pastel
+  ];
   charts['motivo'] = new Chart(document.getElementById('motivoChart'), {
     type: 'doughnut',
     data: {
