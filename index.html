@@ -641,7 +641,7 @@
         <div class="kpi-sub">en el período</div>
       </div>
       <div class="kpi ok">
-        <div class="kpi-eyebrow">On-time</div>
+        <div class="kpi-eyebrow">Cumplido</div>
         <div class="kpi-number" id="kpiOk">—</div>
         <div class="kpi-sub" id="kpiOkSub">1er visita en término</div>
       </div>
@@ -656,7 +656,7 @@
         <div class="kpi-sub">vence en ≤ 2 días hábiles</div>
       </div>
       <div class="kpi fail">
-        <div class="kpi-eyebrow">Incumplido</div>
+        <div class="kpi-eyebrow">Delay</div>
         <div class="kpi-number" id="kpiFail">—</div>
         <div class="kpi-sub">sin visita, venció el plazo</div>
       </div>
@@ -1207,7 +1207,7 @@ function renderIataChart(byIata) {
               const i = ctx.dataIndex;
               return [
                 ` SLA: ${pcts[i]}%`,
-                ` Total: ${totales[i]}  |  On-time: ${sorted[i].cumplido}  |  Incumplido: ${sorted[i].incumplido}`
+                ` Total: ${totales[i]}  |  Cumplido: ${sorted[i].cumplido}  |  Delay: ${sorted[i].incumplido}`
               ];
             }
           }
@@ -1268,10 +1268,10 @@ function renderTable() {
   });
 
   const statusMap = {
-    'CUMPLIDO':   { cls: 'badge-ok',   lbl: 'On-time' },
+    'CUMPLIDO':   { cls: 'badge-ok',   lbl: 'Cumplido' },
     'PENDIENTE':  { cls: 'badge-pend', lbl: 'Pendiente' },
     'EN_RIESGO':  { cls: 'badge-pend', lbl: 'En riesgo' },
-    'INCUMPLIDO': { cls: 'badge-fail', lbl: 'Incumplido' }
+    'INCUMPLIDO': { cls: 'badge-fail', lbl: 'Delay' }
   };
 
   document.getElementById('tblBody').innerHTML = rows.map(r => {
