@@ -112,7 +112,7 @@
     }
     .controls-grid {
       display: grid;
-      grid-template-columns: 260px 1fr 200px 200px 210px auto;
+      grid-template-columns: 260px 1fr 200px 210px auto;
       gap: 14px;
       align-items: end;
     }
@@ -637,15 +637,6 @@
       </div>
     </div>
 
-    <!-- 3. TIPO PRIMARY KEY -->
-    <div class="ctrl-group">
-      <label class="ctrl-label">Primary Key Canalizador</label>
-      <select id="selPK">
-        <option value="CP">Solo CP</option>
-        <option value="CP_AP">CP + AP</option>
-      </select>
-    </div>
-
     <!-- CANALIZADOR UPLOAD -->
     <div class="ctrl-group canal-upload-wrap">
       <label class="ctrl-label">
@@ -703,7 +694,7 @@
   <div class="empty-state" id="emptyState">
     <div class="empty-icon">📦</div>
     <h3>Sin resultados aún</h3>
-    <p>Seleccioná un cliente, los APs que querés simular, el tipo de primary key del canalizador y hacé clic en <strong>Calcular SLA</strong>.</p>
+    <p>Seleccioná un cliente, los APs que querés simular y hacé clic en <strong>Calcular SLA</strong>.</p>
   </div>
 
   <!-- CONTENIDO (oculto hasta que hay datos) -->
@@ -1022,7 +1013,7 @@ function renderMsTrigger() {
 // ═══════════════════════════════════════════════════════════
 async function runSimulation() {
   const cliente = document.getElementById('selCliente').value;
-  const pk      = document.getElementById('selPK').value;
+  const pk      = 'CP'; // Primary Key fijo en CP (combo eliminado)
   const periodo = document.getElementById('selPeriodo').value;
 
   if (!cliente) { showToast('Seleccioná un cliente primero.', 'err'); return; }
@@ -1510,7 +1501,7 @@ function businessDaysBetween(from, to) {
 // CANALIZADOR → GOOGLE DRIVE
 // ═══════════════════════════════════════════════════════════
 const GCFG = {
-  CLIENT_ID: 'TU_CLIENT_ID.apps.googleusercontent.com', // ← pendiente: ingresá tu Client ID
+  CLIENT_ID: '496050706421-8k1q65pst9u8t0tpmp3gqajrq0rjuve9.apps.googleusercontent.com',
   FOLDER_ID: '1baTvUJKZkuw5a7M_kVfjig2VlJadZrwk',
   SCOPE:     'https://www.googleapis.com/auth/drive.file',
   FNAME:     'canalizador.xlsx',
