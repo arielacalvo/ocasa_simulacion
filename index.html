@@ -1557,33 +1557,29 @@ function onCanalDrop(ev) {
 async function uploadToDrive(file) {
   canalSt('loading', 'Subiendo a Google Drive…');
   try {
-    const buffer  = await file.arrayBuffer();
+    const buffer   = await file.arrayBuffer();
     const boundary = 'n8n_sla_boundary_' + Date.now();
-    // Metadata: en PATCH no se puede enviar parents
+
+    // Recuperar fileId guardado de subidas anteriores (evita buscar en Drive,
+    // lo cual requeriría scope drive completo en lugar de drive.file)
+    const savedId  = localStorage.getItem('canal_drive_file_id');
+
     const metaCreate = JSON.stringify({ name: GCFG.FNAME, parents: [GCFG.FOLDER_ID], mimeType: GCFG.MIME });
     const metaUpdate = JSON.stringify({ name: GCFG.FNAME, mimeType: GCFG.MIME });
 
-    // Buscar si ya existe para hacer PATCH en lugar de POST
-    const qRes  = await fetch(
-      `https://www.googleapis.com/drive/v3/files?q=name%3D'${GCFG.FNAME}'+and+'${GCFG.FOLDER_ID}'+in+parents+and+trashed%3Dfalse&fields=files(id)`,
-      { headers: { Authorization: 'Bearer ' + _token } }
-    );
-    const qData = await qRes.json();
-    const exist  = qData.files?.[0];
-
-    const url    = exist
-      ? `https://www.googleapis.com/upload/drive/v3/files/${exist.id}?uploadType=multipart`
+    const url    = savedId
+      ? `https://www.googleapis.com/upload/drive/v3/files/${savedId}?uploadType=multipart`
       : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
-    const method = exist ? 'PATCH' : 'POST';
-    const meta   = exist ? metaUpdate : metaCreate;
+    const method = savedId ? 'PATCH' : 'POST';
+    const meta   = savedId ? metaUpdate : metaCreate;
 
     // Construir cuerpo multipart
-    const enc   = new TextEncoder();
-    const pre   = enc.encode(
+    const enc  = new TextEncoder();
+    const pre  = enc.encode(
       `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: ${GCFG.MIME}\r\n\r\n`
     );
-    const suf   = enc.encode(`\r\n--${boundary}--`);
-    const body  = new Uint8Array(pre.length + buffer.byteLength + suf.length);
+    const suf  = enc.encode(`\r\n--${boundary}--`);
+    const body = new Uint8Array(pre.length + buffer.byteLength + suf.length);
     body.set(pre, 0);
     body.set(new Uint8Array(buffer), pre.length);
     body.set(suf, pre.length + buffer.byteLength);
@@ -1596,12 +1592,25 @@ async function uploadToDrive(file) {
       },
       body
     });
+
+    // Si el archivo fue eliminado de Drive (savedId inválido), reintentar como nuevo
+    if (!upRes.ok && savedId && upRes.status === 404) {
+      localStorage.removeItem('canal_drive_file_id');
+      canalSt('loading', 'Archivo no encontrado en Drive, subiendo como nuevo…');
+      return uploadToDrive(file);
+    }
+
     if (!upRes.ok) {
-      const e = await upRes.json().catch(()=>({}));
+      const e = await upRes.json().catch(() => ({}));
       throw new Error(e.error?.message || `HTTP ${upRes.status}`);
     }
+
+    const result = await upRes.json();
+    // Guardar el fileId para próximas subidas
+    if (result.id) localStorage.setItem('canal_drive_file_id', result.id);
+
     const kb  = (file.size / 1024).toFixed(0);
-    const act = exist ? 'actualizado' : 'subido';
+    const act = savedId ? 'actualizado' : 'subido';
     canalSt('ok', `✓ Canalizador ${act} en Drive (${kb} KB)`);
   } catch (err) {
     console.error('[Drive]', err);
