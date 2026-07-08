@@ -1559,7 +1559,9 @@ async function uploadToDrive(file) {
   try {
     const buffer  = await file.arrayBuffer();
     const boundary = 'n8n_sla_boundary_' + Date.now();
-    const meta    = JSON.stringify({ name: GCFG.FNAME, parents: [GCFG.FOLDER_ID], mimeType: GCFG.MIME });
+    // Metadata: en PATCH no se puede enviar parents
+    const metaCreate = JSON.stringify({ name: GCFG.FNAME, parents: [GCFG.FOLDER_ID], mimeType: GCFG.MIME });
+    const metaUpdate = JSON.stringify({ name: GCFG.FNAME, mimeType: GCFG.MIME });
 
     // Buscar si ya existe para hacer PATCH en lugar de POST
     const qRes  = await fetch(
@@ -1573,6 +1575,7 @@ async function uploadToDrive(file) {
       ? `https://www.googleapis.com/upload/drive/v3/files/${exist.id}?uploadType=multipart`
       : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
     const method = exist ? 'PATCH' : 'POST';
+    const meta   = exist ? metaUpdate : metaCreate;
 
     // Construir cuerpo multipart
     const enc   = new TextEncoder();
