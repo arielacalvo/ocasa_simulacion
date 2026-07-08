@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>SLA Última Milla — Equipos</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -111,7 +112,7 @@
     }
     .controls-grid {
       display: grid;
-      grid-template-columns: 260px 1fr 220px 200px auto;
+      grid-template-columns: 260px 1fr 200px 200px 210px auto;
       gap: 14px;
       align-items: end;
     }
@@ -526,6 +527,61 @@
       font-family: 'Inter', sans-serif;
       border-top: 1px solid var(--border);
     }
+
+    /* ══════ CANALIZADOR UPLOADER ══════ */
+    .canal-upload-wrap { display: flex; flex-direction: column; gap: 6px; }
+    .canal-dropzone {
+      background: var(--surface2);
+      border: 1.5px dashed var(--border);
+      border-radius: 6px;
+      min-height: 38px;
+      padding: 0 10px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      transition: border-color .2s, background .2s;
+      position: relative;
+      overflow: hidden;
+    }
+    .canal-dropzone:hover, .canal-dropzone.dragover {
+      border-color: var(--accent);
+      background: var(--accent-dim, rgba(0,180,216,.08));
+    }
+    .canal-dropzone input[type=file] {
+      position: absolute; inset: 0; opacity: 0;
+      cursor: pointer; width: 100%; height: 100%;
+    }
+    .canal-icon { font-size: 15px; flex-shrink: 0; }
+    .canal-text {
+      font-size: 11.5px; color: var(--muted);
+      font-family: 'Inter', sans-serif;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    }
+    .canal-text.has-file { color: var(--text); font-weight: 500; }
+    .canal-status {
+      display: flex; align-items: center; gap: 5px;
+      font-size: 10px; font-family: 'Inter', sans-serif;
+      min-height: 14px; letter-spacing: .3px;
+    }
+    .canal-status .sdot {
+      width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0;
+    }
+    .canal-status.idle   { color: var(--muted); }
+    .canal-status.idle .sdot    { background: var(--muted); }
+    .canal-status.loading { color: var(--accent); }
+    .canal-status.loading .sdot { background: var(--accent); animation: pulse 1s infinite; }
+    .canal-status.ok    { color: var(--ok); }
+    .canal-status.ok .sdot      { background: var(--ok); }
+    .canal-status.err   { color: var(--fail); }
+    .canal-status.err .sdot     { background: var(--fail); }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.35} }
+    .canal-auth-link {
+      color: var(--accent); cursor: pointer;
+      font-size: 9px; text-decoration: underline;
+      letter-spacing: .5px; font-weight: 600;
+    }
+    .canal-auth-link.connected { color: var(--ok); text-decoration: none; cursor: default; }
   </style>
 </head>
 <body>
@@ -588,6 +644,26 @@
         <option value="CP">Solo CP</option>
         <option value="CP_AP">CP + AP</option>
       </select>
+    </div>
+
+    <!-- CANALIZADOR UPLOAD -->
+    <div class="ctrl-group canal-upload-wrap">
+      <label class="ctrl-label">
+        Canalizador
+        <span class="canal-auth-link" id="canalAuthLink" onclick="authDrive()">🔗 Conectar Drive</span>
+      </label>
+      <div class="canal-dropzone" id="canalDropzone"
+           ondragover="event.preventDefault();this.classList.add('dragover')"
+           ondragleave="this.classList.remove('dragover')"
+           ondrop="onCanalDrop(event)">
+        <input type="file" id="canalFileInput" accept=".xlsx" onchange="onCanalSelect(this.files[0])"/>
+        <span class="canal-icon">📂</span>
+        <span class="canal-text" id="canalFileName">Seleccionar .xlsx…</span>
+      </div>
+      <div class="canal-status idle" id="canalStatus">
+        <span class="sdot"></span>
+        <span id="canalStatusTxt">Sin archivo seleccionado</span>
+      </div>
     </div>
 
     <!-- 4. PERÍODO -->
@@ -1427,6 +1503,128 @@ function businessDaysBetween(from, to) {
   let d = new Date(from), count = 0;
   while (d < to) { d.setDate(d.getDate()+1); if(d.getDay()!==0&&d.getDay()!==6) count++; }
   return count;
+}
+
+
+// ═══════════════════════════════════════════════════════════
+// CANALIZADOR → GOOGLE DRIVE
+// ═══════════════════════════════════════════════════════════
+const GCFG = {
+  CLIENT_ID: 'TU_CLIENT_ID.apps.googleusercontent.com', // ← pendiente: ingresá tu Client ID
+  FOLDER_ID: '1baTvUJKZkuw5a7M_kVfjig2VlJadZrwk',
+  SCOPE:     'https://www.googleapis.com/auth/drive.file',
+  FNAME:     'canalizador.xlsx',
+  MIME:      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+};
+
+let _token     = null;
+let _pendingFile = null;
+
+// ── Auth con Google OAuth2 (GIS token client) ──
+function authDrive() {
+  if (_token) { canalSt('ok', '✓ Drive ya conectado'); return; }
+  if (!window.google?.accounts?.oauth2) {
+    canalSt('err', 'Google SDK no cargó aún. Reintentá en un segundo.');
+    return;
+  }
+  google.accounts.oauth2.initTokenClient({
+    client_id: GCFG.CLIENT_ID,
+    scope:     GCFG.SCOPE,
+    callback: (resp) => {
+      if (resp.error) { canalSt('err', 'Error de autenticación: ' + resp.error); return; }
+      _token = resp.access_token;
+      const link = document.getElementById('canalAuthLink');
+      link.textContent = '✓ Drive conectado';
+      link.classList.add('connected');
+      canalSt('ok', 'Drive conectado');
+      if (_pendingFile) { uploadToDrive(_pendingFile); _pendingFile = null; }
+    }
+  }).requestAccessToken();
+}
+
+// ── Selección por input ──
+function onCanalSelect(file) {
+  if (!file) return;
+  if (!file.name.toLowerCase().endsWith('.xlsx')) {
+    canalSt('err', 'Solo se aceptan archivos .xlsx');
+    return;
+  }
+  setCanalFile(file);
+  if (!_token) { _pendingFile = file; authDrive(); }
+  else uploadToDrive(file);
+}
+
+// ── Drag & drop ──
+function onCanalDrop(ev) {
+  ev.preventDefault();
+  document.getElementById('canalDropzone').classList.remove('dragover');
+  const file = ev.dataTransfer.files[0];
+  if (file) onCanalSelect(file);
+}
+
+// ── Upload multipart a Drive ──
+async function uploadToDrive(file) {
+  canalSt('loading', 'Subiendo a Google Drive…');
+  try {
+    const buffer  = await file.arrayBuffer();
+    const boundary = 'n8n_sla_boundary_' + Date.now();
+    const meta    = JSON.stringify({ name: GCFG.FNAME, parents: [GCFG.FOLDER_ID], mimeType: GCFG.MIME });
+
+    // Buscar si ya existe para hacer PATCH en lugar de POST
+    const qRes  = await fetch(
+      `https://www.googleapis.com/drive/v3/files?q=name%3D'${GCFG.FNAME}'+and+'${GCFG.FOLDER_ID}'+in+parents+and+trashed%3Dfalse&fields=files(id)`,
+      { headers: { Authorization: 'Bearer ' + _token } }
+    );
+    const qData = await qRes.json();
+    const exist  = qData.files?.[0];
+
+    const url    = exist
+      ? `https://www.googleapis.com/upload/drive/v3/files/${exist.id}?uploadType=multipart`
+      : 'https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart';
+    const method = exist ? 'PATCH' : 'POST';
+
+    // Construir cuerpo multipart
+    const enc   = new TextEncoder();
+    const pre   = enc.encode(
+      `--${boundary}\r\nContent-Type: application/json\r\n\r\n${meta}\r\n--${boundary}\r\nContent-Type: ${GCFG.MIME}\r\n\r\n`
+    );
+    const suf   = enc.encode(`\r\n--${boundary}--`);
+    const body  = new Uint8Array(pre.length + buffer.byteLength + suf.length);
+    body.set(pre, 0);
+    body.set(new Uint8Array(buffer), pre.length);
+    body.set(suf, pre.length + buffer.byteLength);
+
+    const upRes = await fetch(url, {
+      method,
+      headers: {
+        Authorization:  'Bearer ' + _token,
+        'Content-Type': `multipart/related; boundary=${boundary}`
+      },
+      body
+    });
+    if (!upRes.ok) {
+      const e = await upRes.json().catch(()=>({}));
+      throw new Error(e.error?.message || `HTTP ${upRes.status}`);
+    }
+    const kb  = (file.size / 1024).toFixed(0);
+    const act = exist ? 'actualizado' : 'subido';
+    canalSt('ok', `✓ Canalizador ${act} en Drive (${kb} KB)`);
+  } catch (err) {
+    console.error('[Drive]', err);
+    canalSt('err', 'Error: ' + err.message);
+  }
+}
+
+// ── Helpers UI ──
+function setCanalFile(file) {
+  const el = document.getElementById('canalFileName');
+  el.textContent = file.name;
+  el.classList.add('has-file');
+}
+function canalSt(type, msg) {
+  const wrap = document.getElementById('canalStatus');
+  wrap.className = 'canal-status ' + type;
+  document.getElementById('canalStatusTxt').textContent = msg;
 }
 
 // ── START ──
